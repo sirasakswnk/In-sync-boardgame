@@ -1,5 +1,5 @@
 import { ERROR_MESSAGES, MAX_SEATS, ROOM_TTL_MS } from './constants';
-import { bothTrue, currentPhase, isLastRound, memberUids, partnerOf } from './phases';
+import { bothTrue, currentPhase, isLastRound, memberUids, partnerOf, rolesFor } from './phases';
 import { pickQuestions } from './questions';
 import { createRng, shuffle } from './rng';
 import { isValidRanking } from './schemas';
@@ -226,23 +226,23 @@ function onStart(room: RoomState, ctx: ReducerCtx): HandlerOutcome {
   if (!questions) return err('NOT_ENOUGH_QUESTIONS');
 
   const gameId = ctx.newGameId;
-  const rounds: RoundState[] = questions.map((question, index) => ({
-    index,
-    question: structuredClone(question),
-    layouts: Object.fromEntries(
-      uids.map((u) => [
-        u,
-        {
-          self: initialLayout(question, `${ctx.seed}:${gameId}:${index}:${u}:self`),
-          guess: initialLayout(question, `${ctx.seed}:${gameId}:${index}:${u}:guess`),
-        },
-      ]),
-    ),
-    self: {},
-    guess: {},
-    results: null,
-    continued: {},
-  }));
+  const rounds: RoundState[] = questions.map((question, index) => {
+    const { setterUid, guesserUid } = rolesFor(uids, index);
+    return {
+      index,
+      question: structuredClone(question),
+      setterUid,
+      guesserUid,
+      layouts: {
+        [setterUid]: { self: initialLayout(question, `${ctx.seed}:${gameId}:${index}:${setterUid}:self`) },
+        [guesserUid]: { guess: initialLayout(question, `${ctx.seed}:${gameId}:${index}:${guesserUid}:guess`) },
+      },
+      self: {},
+      guess: {},
+      results: null,
+      continued: {},
+    };
+  });
 
   room.game = {
     id: gameId,
@@ -287,6 +287,9 @@ function onSubmit(
   const game = checkScope(room, cmd, stage === 'self' ? 'SELF_RANK' : 'GUESS_RANK');
   if (!game) return err('WRONG_PHASE');
   const round = game.rounds[game.roundIndex]!;
+  // ผลัดเทิร์น: setter ส่ง self, guesser ส่ง guess — อีกคนรอ
+  const actor = stage === 'self' ? round.setterUid : round.guesserUid;
+  if (ctx.uid !== actor) return err('NOT_YOUR_TURN');
   const bucket = stage === 'self' ? round.self : round.guess;
 
   if (bucket[ctx.uid]) return err('ALREADY_SUBMITTED');
@@ -296,23 +299,16 @@ function onSubmit(
 
   bucket[ctx.uid] = [...cmd.optionIds];
 
-  const uids = memberUids(room);
-  if (!uids.every((u) => bucket[u])) return ok();
-
   if (stage === 'self') {
     game.phase = 'GUESS_RANK';
     return ok();
   }
 
-  // คำทายครบทั้งคู่: คิดคะแนนสองฝั่งและเปิดเฉลยในก้าวเดียว (plan.md §4.4)
-  // score(A) = guess(A) เทียบ selfRank(B)
-  const [a, b] = uids as [Uid, Uid];
-  round.results = {
-    [a]: scoreRanking(round.self[b]!, round.guess[a]!),
-    [b]: scoreRanking(round.self[a]!, round.guess[b]!),
-  };
-  game.totals[a] = (game.totals[a] ?? 0) + round.results[a]!.score;
-  game.totals[b] = (game.totals[b] ?? 0) + round.results[b]!.score;
+  // คำทายมาถึงแล้ว: คิดคะแนนและเปิดเฉลยในก้าวเดียว คะแนนเข้าคนทายเท่านั้น
+  const guesser: Uid = round.guesserUid;
+  const result = scoreRanking(round.self[round.setterUid]!, round.guess[guesser]!);
+  round.results = { [guesser]: result };
+  game.totals[guesser] = (game.totals[guesser] ?? 0) + result.score;
   game.phase = 'REVEAL';
   return ok();
 }
@@ -325,11 +321,11 @@ function onContinue(
   const game = checkScope(room, cmd, 'REVEAL');
   if (!game) return err('WRONG_PHASE');
   const round = game.rounds[game.roundIndex]!;
-  if (round.continued[ctx.uid]) return ok(false);
+  // คนวางของรอบนี้เป็นคนพาไปต่อ — คนทายรอ
+  if (ctx.uid !== round.setterUid) return err('NOT_YOUR_TURN');
   if (!partnerOnline(room, ctx)) return err('PARTNER_OFFLINE');
 
   round.continued[ctx.uid] = true;
-  if (!bothTrue(round.continued, memberUids(room))) return ok();
 
   if (isLastRound(game.roundIndex)) {
     game.phase = 'RESULTS';

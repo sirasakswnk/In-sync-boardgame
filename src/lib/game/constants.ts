@@ -2,7 +2,9 @@ export const ROUNDS_PER_GAME = 6;
 export const OPTIONS_PER_ROUND = 5;
 export const MAX_SEATS = 2;
 export const MAX_ROUND_SCORE = OPTIONS_PER_ROUND * 2;
-export const MAX_GAME_SCORE = MAX_ROUND_SCORE * ROUNDS_PER_GAME;
+/** ผลัดกันทายรอบละคน แต่ละคนได้ทายครึ่งหนึ่งของเกม */
+export const GUESSES_PER_PLAYER = ROUNDS_PER_GAME / 2;
+export const MAX_GAME_SCORE = MAX_ROUND_SCORE * GUESSES_PER_PLAYER;
 
 export const ROOM_CODE_LENGTH = 6;
 /** ตัด I, O, 0, 1 ออกเพื่อไม่ให้อ่านสับสน */
@@ -61,6 +63,7 @@ export const ERROR_CODES = [
   'PARTNER_OFFLINE',
   'NOT_READY',
   'NOT_HOST',
+  'NOT_YOUR_TURN',
   'NOT_ENOUGH_QUESTIONS',
   'INVALID_PAYLOAD',
   'COMMAND_CONFLICT',
@@ -82,6 +85,7 @@ export const ERROR_MESSAGES: Record<(typeof ERROR_CODES)[number], string> = {
   PARTNER_OFFLINE: 'คู่หูหลุดการเชื่อมต่ออยู่ รอให้กลับมาก่อนนะ',
   NOT_READY: 'ยังเริ่มไม่ได้ ต้องมีผู้เล่นสองคนและกดพร้อมทั้งคู่',
   NOT_HOST: 'เฉพาะผู้สร้างห้องเท่านั้นที่ทำสิ่งนี้ได้',
+  NOT_YOUR_TURN: 'ยังไม่ถึงตาคุณในช่วงนี้',
   NOT_ENOUGH_QUESTIONS: 'หมวดที่เลือกมีคำถามไม่ถึง 6 ข้อ เลือกหมวดเพิ่มอีกหน่อยนะ',
   INVALID_PAYLOAD: 'ข้อมูลที่ส่งมาไม่ถูกต้อง ลองรีเฟรชหน้าแล้วทำใหม่',
   COMMAND_CONFLICT: 'คำสั่งนี้ถูกส่งไปแล้วด้วยข้อมูลอื่น ลองรีเฟรชหน้า',

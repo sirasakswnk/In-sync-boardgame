@@ -34,16 +34,14 @@ function snapshots(): Array<[string, RoomState]> {
   t.startGame();
   out.push(['SELF_RANK', structuredClone(t.room)]);
   expectOk(t.scoped(A, 'self', t.optionIds()));
-  out.push(['SELF_RANK (ส่งแล้วหนึ่งคน)', structuredClone(t.room)]);
-  expectOk(t.scoped(B, 'self', t.optionIds()));
   out.push(['GUESS_RANK', structuredClone(t.room)]);
-  expectOk(t.scoped(A, 'guess', t.optionIds()));
   expectOk(t.scoped(B, 'guess', t.optionIds()));
   out.push(['REVEAL', structuredClone(t.room)]);
-  t.continueBoth();
+  t.advance();
+  out.push(['SELF_RANK รอบ 2 (สลับบทบาท)', structuredClone(t.room)]);
   for (let i = 1; i < 6; i++) {
-    t.playRound({ aSelf: IDENTITY, bSelf: REVERSED, aGuess: IDENTITY, bGuess: REVERSED });
-    t.continueBoth();
+    t.playRound({ self: IDENTITY, guess: i % 2 ? REVERSED : IDENTITY });
+    t.advance();
   }
   out.push(['RESULTS', structuredClone(t.room)]);
   return out;
@@ -64,6 +62,21 @@ describe('normalize — กู้รูปร่างหลังผ่าน R
       });
     }
   }
+
+  it('ห้องจากเวอร์ชันก่อนผลัดเทิร์น (ไม่มี setterUid/guesserUid) ได้บทบาทตามที่นั่ง', () => {
+    const t = new Table();
+    t.startGame();
+    const legacy = structuredClone(t.room) as unknown as {
+      game: { rounds: Array<Record<string, unknown>> };
+    };
+    for (const round of legacy.game.rounds) {
+      delete round.setterUid;
+      delete round.guesserUid;
+    }
+    const restored = normalizeRoomState(rtdbize(legacy))!;
+    expect(restored.game!.rounds.map((r) => r.setterUid)).toEqual([A, B, A, B, A, B]);
+    expect(restored.game!.rounds.map((r) => r.guesserUid)).toEqual([B, A, B, A, B, A]);
+  });
 
   it('ข้อมูลว่าง/ผิดรูปได้ null', () => {
     expect(normalizeRoomState(null)).toBeNull();

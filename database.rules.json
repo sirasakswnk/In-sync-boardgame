@@ -33,6 +33,29 @@
         "state/expiresAt"
       ]
     },
+    "live": {
+      "$roomId": {
+        ".read": "auth != null && root.child('rooms').child($roomId).child('state').child('members').child(auth.uid).exists()",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('turn').child('phase').val() === 'GUESS_RANK' && root.child('rooms').child($roomId).child('turn').child('guesserUid').val() === auth.uid",
+          ".validate": "newData.hasChildren(['key', 'order', 'at']) && newData.child('key').val() === root.child('rooms').child($roomId).child('turn').child('key').val() && newData.child('order').child('4').exists() && !newData.child('order').child('5').exists()",
+          "key": {
+            ".validate": "newData.isString()"
+          },
+          "at": {
+            ".validate": "newData.isNumber()"
+          },
+          "order": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-4]$/) && newData.isString() && newData.val().length <= 32"
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
     "rateLimits": {
       ".indexOn": [
         "windowStart"

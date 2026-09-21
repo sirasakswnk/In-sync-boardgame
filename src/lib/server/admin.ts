@@ -31,8 +31,9 @@ export function adminApp(): App {
   const databaseURL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
   if (!databaseURL) throw new ConfigError('ยังไม่ได้ตั้ง NEXT_PUBLIC_FIREBASE_DATABASE_URL');
 
-  const serviceAccount = readServiceAccount();
   const usingEmulator = Boolean(process.env.FIREBASE_DATABASE_EMULATOR_HOST);
+  // ใช้ emulator อยู่: ไม่แตะ service account จริง แม้จะมีใน .env.local (next dev โหลดไฟล์นั้นเสมอ)
+  const serviceAccount = usingEmulator ? null : readServiceAccount();
 
   if (!serviceAccount && !usingEmulator) {
     throw new ConfigError('ยังไม่ได้ตั้ง FIREBASE_SERVICE_ACCOUNT');

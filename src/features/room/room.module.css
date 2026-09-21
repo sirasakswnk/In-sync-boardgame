@@ -94,6 +94,9 @@
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--ink);
   font-weight: 700;
   text-decoration: none;
@@ -172,6 +175,13 @@
   white-space: nowrap;
 }
 
+/* จอแคบ: เหลือแค่ตัวเลข ให้ “คุณ · 13” ไม่ถูกตัด */
+@media (max-width: 400px) {
+  .scoreUnit {
+    display: none;
+  }
+}
+
 .progress {
   display: grid;
   justify-items: center;
@@ -205,6 +215,16 @@
 .dotNow {
   background: var(--stage);
   transform: scale(1.35);
+}
+
+.roleChip {
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--stage-soft);
+  color: var(--stage-ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .vs {
@@ -645,53 +665,214 @@
   }
 }
 
-.ownAnswer {
-  border-radius: 18px;
-  background: var(--paper);
-  box-shadow: inset 0 0 0 1.5px var(--line);
-}
-
-.ownAnswer summary {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  min-height: 48px;
-  padding: 10px 16px;
+.watching {
+  color: var(--stage-ink);
   font-weight: 600;
-  cursor: pointer;
+  overflow-wrap: anywhere;
 }
 
-.ownAnswer summary small {
-  color: var(--ink-muted);
-  font-weight: 400;
-}
+/* ---------- waiting turn (คนทายรอคนวาง) ---------- */
 
-.ownList {
+.waitCard {
   display: grid;
-  gap: 6px;
+  justify-items: center;
+  gap: 14px;
+  padding: 26px 18px 22px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--stage-soft) 55%, var(--paper));
+  text-align: center;
+  animation: rise 320ms var(--ease-out);
+}
+
+.waitAvatar {
+  position: relative;
+}
+
+.waitDeck {
+  position: relative;
+  width: 200px;
+  height: 104px;
+}
+
+/* การ์ด 5 ใบสลับที่กันเป็นวง — ขยับด้วย transform อย่างเดียว ไม่ทำให้ layout กระตุก */
+.waitDeck span {
+  position: absolute;
+  top: 12px;
+  left: 76px;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 66px;
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: var(--shadow-card);
+  font-size: 1.4rem;
+  animation: shuffle 2.8s var(--ease-out) infinite;
+}
+
+.waitDeck span:nth-child(1) { --a: -76px; --b: 38px; --r: -10deg; animation-delay: 0s; }
+.waitDeck span:nth-child(2) { --a: -38px; --b: 76px; --r: -5deg; animation-delay: -0.56s; }
+.waitDeck span:nth-child(3) { --a: 0px; --b: -76px; --r: 0deg; animation-delay: -1.12s; }
+.waitDeck span:nth-child(4) { --a: 38px; --b: -38px; --r: 5deg; animation-delay: -1.68s; }
+.waitDeck span:nth-child(5) { --a: 76px; --b: 0px; --r: 10deg; animation-delay: -2.24s; }
+
+@keyframes shuffle {
+  0%,
+  30% {
+    transform: translateX(var(--a)) rotate(var(--r));
+  }
+  45% {
+    transform: translateX(calc((var(--a) + var(--b)) / 2)) translateY(-14px) rotate(0deg);
+  }
+  60%,
+  100% {
+    transform: translateX(var(--b)) rotate(calc(var(--r) * -1));
+  }
+}
+
+.waitTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--stage-ink);
+}
+
+.waitDots::after {
+  content: '';
+  display: inline-block;
+  width: 1.2em;
+  text-align: left;
+  animation: dots 1.4s steps(4, end) infinite;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+/* ---------- watch guess (คนวางดูคนทายเรียงสด) ---------- */
+
+.watchCard {
+  display: grid;
+  gap: 10px;
+  padding: 16px 12px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--stage-soft) 55%, var(--paper));
+  animation: rise 320ms var(--ease-out);
+}
+
+.watchHead {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  align-items: end;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.watchHead span:last-child {
+  color: var(--stage-ink);
+}
+
+.watchBoard {
+  --row: 58px;
+  --gap: 8px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 8px;
+}
+
+.watchRanks,
+.watchMine {
+  display: grid;
+  grid-auto-rows: var(--row);
+  gap: var(--gap);
   margin: 0;
-  padding: 0 16px 14px;
+  padding: 0;
   list-style: none;
 }
 
-.ownList li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.ownRank {
+.watchRank {
   display: grid;
   place-items: center;
-  flex: none;
-  width: 24px;
-  height: 24px;
+  align-self: center;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: var(--coral-soft);
-  color: var(--coral-ink);
-  font-size: 0.8rem;
+  background: var(--stage);
+  color: var(--stage-on);
+  font-size: 0.85rem;
   font-weight: 700;
+}
+
+.watchLive {
+  position: relative;
+  height: calc(var(--row) * 5 + var(--gap) * 4);
+}
+
+.miniCard {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--row);
+  padding: 6px 8px;
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-card);
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+.miniCard > span:last-child {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.miniIcon {
+  flex: none;
+  font-size: 1.15rem;
+}
+
+.watchLive .miniCard {
+  position: absolute;
+  inset: 0 0 auto;
+  box-shadow: 0 0 0 2px var(--stage), var(--shadow-card);
+  transform: translateY(calc(var(--i) * (var(--row) + var(--gap))));
+  transition: transform 220ms var(--ease-out);
+}
+
+.watchEmpty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 2px var(--line);
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 8px;
+}
+
+.watchStatus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 24px;
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+}
+
+.watchMoving {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--stage-ink);
+  font-weight: 600;
 }
 
 @keyframes rise {

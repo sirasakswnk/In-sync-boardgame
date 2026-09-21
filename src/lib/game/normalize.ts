@@ -45,14 +45,23 @@ function normalizeScore(raw: unknown): ScoreResult {
   return { score: s.score, breakdown: asArray(s.breakdown) };
 }
 
-function normalizeRound(raw: unknown): RoundState {
+function normalizeRound(raw: unknown, seatUids: readonly string[]): RoundState {
   const r = raw as Loose & Partial<RoundState>;
+  const index = Number(r?.index ?? 0);
+  // ห้องที่เริ่มเกมก่อนเปลี่ยนเป็นผลัดเทิร์นไม่มี setter/guesser — เติมตามที่นั่งแบบเดียวกับ rolesFor
+  const fallbackSetter = seatUids[index % 2] ?? '';
+  const fallbackGuesser = seatUids[1 - (index % 2)] ?? '';
   return {
-    index: Number(r?.index ?? 0),
+    index,
     question: normalizeQuestion(r?.question),
+    setterUid: typeof r?.setterUid === 'string' ? r.setterUid : fallbackSetter,
+    guesserUid: typeof r?.guesserUid === 'string' ? r.guesserUid : fallbackGuesser,
     layouts: asRecord(r?.layouts, (v) => {
       const l = (v ?? {}) as { self?: unknown; guess?: unknown };
-      return { self: asArray<string>(l.self), guess: asArray<string>(l.guess) };
+      const out: { self?: string[]; guess?: string[] } = {};
+      if (l.self) out.self = asArray<string>(l.self);
+      if (l.guess) out.guess = asArray<string>(l.guess);
+      return out;
     }),
     self: asRecord(r?.self, (v) => asArray<string>(v)),
     guess: asRecord(r?.guess, (v) => asArray<string>(v)),
@@ -61,14 +70,14 @@ function normalizeRound(raw: unknown): RoundState {
   };
 }
 
-function normalizeGame(raw: unknown): GameState | null {
+function normalizeGame(raw: unknown, seatUids: readonly string[]): GameState | null {
   if (!raw || typeof raw !== 'object') return null;
   const g = raw as Partial<GameState>;
   return {
     id: String(g.id),
     phase: g.phase!,
     roundIndex: Number(g.roundIndex ?? 0),
-    rounds: asArray(g.rounds).map(normalizeRound),
+    rounds: asArray(g.rounds).map((round) => normalizeRound(round, seatUids)),
     totals: asRecord(g.totals, Number),
     rematch: asRecord(g.rematch, Boolean),
     createdAt: Number(g.createdAt ?? 0),
@@ -79,6 +88,10 @@ function normalizeGame(raw: unknown): GameState | null {
 export function normalizeRoomState(raw: unknown): RoomState | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Partial<RoomState>;
+  const members = asRecord(r.members) as RoomState['members'];
+  const seatUids = Object.values(members)
+    .sort((a, b) => a.seat - b.seat)
+    .map((m) => m.uid);
   return {
     id: String(r.id),
     code: String(r.code),
@@ -89,8 +102,8 @@ export function normalizeRoomState(raw: unknown): RoomState | null {
     lastActivityAt: Number(r.lastActivityAt ?? 0),
     expiresAt: Number(r.expiresAt ?? 0),
     settings: { categories: asArray(r.settings?.categories) },
-    members: asRecord(r.members) as RoomState['members'],
-    game: normalizeGame(r.game),
+    members,
+    game: normalizeGame(r.game, seatUids),
     previousQuestionIds: asArray(r.previousQuestionIds),
     receipts: asRecord(r.receipts, (v) => asRecord(v)) as RoomState['receipts'],
   };
@@ -105,13 +118,10 @@ function normalizeReveal(raw: unknown): RevealRound {
   return {
     roundIndex: Number(r.roundIndex),
     question: normalizeQuestion(r.question),
-    yourSelf: asArray(r.yourSelf),
-    partnerSelf: asArray(r.partnerSelf),
-    yourGuess: asArray(r.yourGuess),
-    partnerGuess: asArray(r.partnerGuess),
-    yourGuessScore: normalizeScore(r.yourGuessScore),
-    partnerGuessScore: normalizeScore(r.partnerGuessScore),
-    sameTopPick: Boolean(r.sameTopPick),
+    setter: r.setter === 'you' ? 'you' : 'partner',
+    setterOrder: asArray(r.setterOrder),
+    guessOrder: asArray(r.guessOrder),
+    score: normalizeScore(r.score),
   };
 }
 
@@ -130,6 +140,9 @@ function normalizeGameView(raw: unknown): PlayerGameView | null {
     roundIndex: Number(g.roundIndex ?? 0),
     roundCount: Number(g.roundCount ?? 0),
     question: normalizeQuestion(g.question),
+    role: g.role === 'setter' ? 'setter' : 'guesser',
+    guesserUid: String(g.guesserUid ?? ''),
+    liveKey: String(g.liveKey ?? ''),
     layout: asArray(g.layout),
     yourSelf: yourSelf.length ? yourSelf : null,
     yourGuess: yourGuess.length ? yourGuess : null,

@@ -1,6 +1,5 @@
 import { ROUNDS_PER_GAME } from './constants';
 import { currentPhase, memberUids, partnerOf } from './phases';
-import { sameTopPick } from './scoring';
 import type {
   MemberState,
   Pair,
@@ -53,6 +52,17 @@ export function buildViews(room: RoomState): Record<Uid, PlayerView> {
   return views;
 }
 
+/**
+ * สรุปเทิร์นปัจจุบันสำหรับ security rules ของ /live (rules ต่อ string กับตัวเลขไม่ได้ จึงเตรียมค่าไว้ให้)
+ * เขียนลง `rooms/$roomId/turn` พร้อม state — client อ่านไม่ได้ ใช้ตรวจสิทธิ์เขียนคำทายสดเท่านั้น
+ */
+export function buildTurn(room: RoomState): { key: string; phase: string; guesserUid: Uid } | null {
+  const game = room.game;
+  const round = game?.rounds[game.roundIndex];
+  if (!game || !round) return null;
+  return { key: `${game.id}:${game.roundIndex}`, phase: game.phase, guesserUid: round.guesserUid };
+}
+
 function publicMember(m: MemberState): PublicMember {
   return {
     uid: m.uid,
@@ -72,6 +82,7 @@ function projectGame(room: RoomState, uid: Uid, partnerUid: Uid | null): PlayerG
   const stage = game.phase === 'GUESS_RANK' ? 'guess' : 'self';
   const revealedHere = game.phase === 'REVEAL' || game.phase === 'RESULTS';
   const p = partnerUid ?? '';
+  const role = round.setterUid === uid ? 'setter' : 'guesser';
 
   const submitted: Pair<boolean> =
     game.phase === 'SELF_RANK'
@@ -80,13 +91,18 @@ function projectGame(room: RoomState, uid: Uid, partnerUid: Uid | null): PlayerG
         ? { you: Boolean(round.guess[uid]), partner: Boolean(round.guess[p]) }
         : { you: true, partner: true };
 
+  // เฉพาะข้อมูลของตัวเอง: self มีแต่ของ setter, guess มีแต่ของ guesser (reducer บังคับ)
+  // คำตอบของ setter ออกไปถึง guesser ได้ทางเดียวคือ revealRound หลังมี results
   return {
     id: game.id,
     phase: game.phase,
     roundIndex: game.roundIndex,
     roundCount: ROUNDS_PER_GAME,
     question: structuredClone(round.question),
-    layout: [...(round.layouts[uid]?.[stage] ?? round.question.options.map((o) => o.id))],
+    role,
+    guesserUid: round.guesserUid,
+    liveKey: `${game.id}:${game.roundIndex}`,
+    layout: [...(round.layouts[uid]?.[stage] ?? [])],
     yourSelf: round.self[uid] ? [...round.self[uid]] : null,
     yourGuess: round.guess[uid] ? [...round.guess[uid]] : null,
     submitted,
@@ -94,36 +110,28 @@ function projectGame(room: RoomState, uid: Uid, partnerUid: Uid | null): PlayerG
     rematch: { you: Boolean(game.rematch[uid]), partner: Boolean(game.rematch[p]) },
     // totals บวกเฉพาะตอนเข้า REVEAL จึงมีแต่คะแนนรอบที่เฉลยแล้วเสมอ
     totals: { you: game.totals[uid] ?? 0, partner: game.totals[p] ?? 0 },
-    reveal: revealedHere ? revealRound(round, uid, p) : null,
+    reveal: revealedHere ? revealRound(round, uid) : null,
     history: game.rounds
       .filter((r) => r.index < game.roundIndex || (revealedHere && r.index === game.roundIndex))
-      .map((r) => revealRound(r, uid, p))
+      .map((r) => revealRound(r, uid))
       .filter((r): r is RevealRound => r !== null),
   };
 }
 
-function revealRound(round: RoundState, uid: Uid, partnerUid: Uid): RevealRound | null {
+function revealRound(round: RoundState, uid: Uid): RevealRound | null {
   const results = round.results;
   if (!results) return null;
-  const yourSelf = round.self[uid];
-  const partnerSelf = round.self[partnerUid];
-  const yourGuess = round.guess[uid];
-  const partnerGuess = round.guess[partnerUid];
-  const yourScore = results[uid];
-  const partnerScore = results[partnerUid];
-  if (!yourSelf || !partnerSelf || !yourGuess || !partnerGuess || !yourScore || !partnerScore) {
-    return null;
-  }
+  const setterOrder = round.self[round.setterUid];
+  const guessOrder = round.guess[round.guesserUid];
+  const score = results[round.guesserUid];
+  if (!setterOrder || !guessOrder || !score) return null;
   return {
     roundIndex: round.index,
     question: structuredClone(round.question),
-    yourSelf: [...yourSelf],
-    partnerSelf: [...partnerSelf],
-    yourGuess: [...yourGuess],
-    partnerGuess: [...partnerGuess],
-    yourGuessScore: copyScore(yourScore),
-    partnerGuessScore: copyScore(partnerScore),
-    sameTopPick: sameTopPick(yourSelf, partnerSelf),
+    setter: round.setterUid === uid ? 'you' : 'partner',
+    setterOrder: [...setterOrder],
+    guessOrder: [...guessOrder],
+    score: copyScore(score),
   };
 }
 

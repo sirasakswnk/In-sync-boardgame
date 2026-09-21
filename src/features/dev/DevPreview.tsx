@@ -19,6 +19,8 @@ import { LobbyView } from '@/features/room/LobbyView';
 import { RankStage } from '@/features/room/RankStage';
 import { ResultsView } from '@/features/room/ResultsView';
 import { RevealView } from '@/features/room/RevealView';
+import { WaitingTurn } from '@/features/room/WaitingTurn';
+import { WatchGuess } from '@/features/room/WatchGuess';
 import styles from '@/features/room/room.module.css';
 
 const A = 'preview-you';
@@ -69,34 +71,33 @@ function buildRoom(screen: string, longNames: boolean): RoomState {
   if (screen === 'lobby') return room;
   run(B, { kind: 'ready', ready: true });
   run(A, { kind: 'start' });
-  if (screen === 'self') return room;
+  // รอบ 1: A (host) วาง, B ทาย
+  if (screen === 'self' || screen === 'waiting') return room;
   scoped(A, 'self', [2, 0, 4, 1, 3]);
-  if (screen === 'waiting') return room;
-  scoped(B, 'self', [1, 3, 0, 2, 4]);
-  if (screen === 'guess') return room;
+  if (screen === 'guess' || screen === 'watch') return room;
   scoped(B, 'guess', [2, 0, 1, 4, 3]);
-  scoped(A, 'guess', [1, 0, 3, 2, 4]);
-  if (screen === 'reveal') return room;
+  if (screen === 'reveal' || screen === 'reveal-guesser') return room;
 
+  // [ลำดับของคนวาง, คำทาย] รอบ 2–6 — คนวางสลับ B, A, B, A, B
   const plans = [
-    [[0, 1, 2, 3, 4], [4, 3, 2, 1, 0], [4, 3, 2, 1, 0], [1, 0, 2, 3, 4]],
-    [[1, 2, 0, 3, 4], [1, 2, 0, 4, 3], [2, 1, 0, 4, 3], [0, 1, 2, 3, 4]],
-    [[3, 1, 0, 2, 4], [0, 1, 2, 3, 4], [0, 2, 1, 3, 4], [3, 1, 2, 0, 4]],
-    [[0, 1, 2, 3, 4], [0, 4, 3, 2, 1], [0, 3, 4, 2, 1], [4, 3, 2, 1, 0]],
-    [[2, 3, 4, 0, 1], [1, 0, 2, 3, 4], [1, 0, 3, 2, 4], [2, 3, 4, 1, 0]],
+    [[4, 3, 2, 1, 0], [1, 0, 2, 3, 4]],
+    [[1, 2, 0, 3, 4], [2, 1, 0, 4, 3]],
+    [[0, 1, 2, 3, 4], [3, 1, 2, 0, 4]],
+    [[0, 4, 3, 2, 1], [0, 3, 4, 2, 1]],
+    [[2, 3, 4, 0, 1], [2, 3, 4, 1, 0]],
   ];
   scoped(A, 'continue');
-  scoped(B, 'continue');
-  for (const [aSelf, bSelf, aGuess, bGuess] of plans) {
-    scoped(A, 'self', aSelf);
-    scoped(B, 'self', bSelf);
-    scoped(A, 'guess', aGuess);
-    scoped(B, 'guess', bGuess);
-    scoped(A, 'continue');
-    scoped(B, 'continue');
+  for (const [setterOrder, guessOrder] of plans) {
+    const { setterUid, guesserUid } = room.game!.rounds[room.game!.roundIndex]!;
+    scoped(setterUid, 'self', setterOrder);
+    scoped(guesserUid, 'guess', guessOrder);
+    scoped(setterUid, 'continue');
   }
   return room;
 }
+
+/** หน้าที่ดูจากมุมของคนทาย (B) — ที่เหลือดูจากมุมของ A */
+const GUESSER_SCREENS = new Set(['waiting', 'guess', 'reveal-guesser']);
 
 const idleCommands: ReturnType<typeof useCommands> = {
   state: { kind: 'idle' },
@@ -112,17 +113,27 @@ export function DevPreview({ screen, longNames }: { screen: string; longNames: b
 }
 
 function PreviewRoom({ screen, longNames }: { screen: string; longNames: boolean }) {
-  const view = useMemo(() => projectRoomForPlayer(buildRoom(screen, longNames), A)!, [screen, longNames]);
+  const viewer = GUESSER_SCREENS.has(screen) ? B : A;
+  const view = useMemo(
+    () => projectRoomForPlayer(buildRoom(screen, longNames), viewer)!,
+    [screen, longNames, viewer],
+  );
   const stage =
     view.phase === 'GUESS_RANK' ? 'guess' : view.phase === 'REVEAL' || view.phase === 'RESULTS' ? 'reveal' : 'self';
+  const role = view.game?.role;
+  const ranking =
+    (view.phase === 'SELF_RANK' && role === 'setter') || (view.phase === 'GUESS_RANK' && role === 'guesser');
+  const ids = view.game?.question.options.map((o) => o.id) ?? [];
 
   return (
     <div className={styles.shell} data-stage={stage}>
       <GameHeader view={view} partnerOnline onLeave={() => undefined} />
       <main className={styles.main}>
         {view.phase === 'LOBBY' && <LobbyView view={view} partnerOnline cmds={idleCommands} />}
-        {(view.phase === 'SELF_RANK' || view.phase === 'GUESS_RANK') && (
-          <RankStage view={view} uid={A} partnerOnline cmds={idleCommands} />
+        {ranking && <RankStage view={view} uid={viewer} partnerOnline cmds={idleCommands} />}
+        {view.phase === 'SELF_RANK' && role === 'guesser' && <WaitingTurn view={view} partnerOnline />}
+        {view.phase === 'GUESS_RANK' && role === 'setter' && (
+          <WatchGuess view={view} partnerOnline demoOrder={[ids[1]!, ids[0]!, ids[3]!, ids[2]!, ids[4]!]} />
         )}
         {view.phase === 'REVEAL' && <RevealView view={view} partnerOnline cmds={idleCommands} />}
         {view.phase === 'RESULTS' && <ResultsView view={view} partnerOnline cmds={idleCommands} />}

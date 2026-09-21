@@ -16,22 +16,19 @@ const I = [0, 1, 2, 3, 4];
 const R = [4, 3, 2, 1, 0];
 
 // แผนเดียวกับ unit test: คะแนนคำนวณล่วงหน้าได้เพราะอิง index ของตัวเลือก ไม่ใช่คำถามที่สุ่มได้
+// คนวางสลับ อลิซ, บ็อบ, … → คนทาย บ็อบ, อลิซ, …
 const PLAN = [
-  { aSelf: I, bSelf: I, aGuess: I, bGuess: [2, 1, 0, 3, 4] }, // A10 B6
-  { aSelf: I, bSelf: R, aGuess: R, bGuess: R }, // A10 B2
-  { aSelf: R, bSelf: I, aGuess: [1, 0, 2, 3, 4], bGuess: R }, // A8 B10
-  { aSelf: I, bSelf: I, aGuess: R, bGuess: I }, // A2 B10
-  { aSelf: I, bSelf: I, aGuess: [2, 1, 0, 3, 4], bGuess: [1, 0, 2, 3, 4] }, // A6 B8
-  { aSelf: I, bSelf: I, aGuess: [0, 1, 2, 4, 3], bGuess: R }, // A8 B2
+  { self: I, guess: [2, 1, 0, 3, 4] }, // บ็อบ 6
+  { self: R, guess: R }, // อลิซ 10
+  { self: I, guess: R }, // บ็อบ 2
+  { self: R, guess: [3, 4, 2, 1, 0] }, // อลิซ 8
+  { self: I, guess: [1, 0, 2, 3, 4] }, // บ็อบ 8
+  { self: I, guess: [2, 1, 0, 3, 4] }, // อลิซ 6
 ];
-const EXPECTED_A = [10, 10, 8, 2, 6, 8];
-const EXPECTED_B = [6, 2, 10, 10, 8, 2];
+const EXPECTED = [6, 10, 2, 8, 8, 6];
 
-/** ส่วนของมุมมองที่ต้องไม่เปลี่ยนเมื่อคู่หูส่งคำตอบลับ */
-function stable(v: PlayerView) {
-  const { revision: _r, expiresAt: _e, ...rest } = structuredClone(v);
-  if (rest.game) rest.game.submitted.partner = false;
-  return rest;
+function liveEntry(v: PlayerView, order: number[], key = v.game!.liveKey) {
+  return { key, order: pick(v, order), at: Date.now() };
 }
 
 describe.skipIf(!firebaseReady())('เกมเต็ม 6 รอบ: สองผู้เล่นคุยกับ backend จริง (§13 ข้อ 15, 16)', () => {
@@ -121,78 +118,91 @@ describe.skipIf(!firebaseReady())('เกมเต็ม 6 รอบ: สอง�
     expect(vb.game!.question.id).toBe(va.game!.question.id);
   });
 
-  it('เล่นครบ 6 รอบ: ความลับไม่รั่วก่อนเฉลย และคะแนนตรงค่าที่คำนวณไว้', async () => {
+  it('เล่นครบ 6 รอบแบบผลัดเทิร์น: ความลับไม่รั่ว คำทายสดผ่าน rules และคะแนนตรงค่าที่คำนวณไว้', async () => {
+    let previousKey = '';
     for (let round = 0; round < 6; round++) {
       const plan = PLAN[round]!;
-      let va = (await alice.readView(roomId))!;
-      let vb = (await bob.readView(roomId))!;
-      expect(va.game!.roundIndex).toBe(round);
-      expect(va.phase).toBe('SELF_RANK');
+      const setter = round % 2 === 0 ? alice : bob;
+      const guesser = round % 2 === 0 ? bob : alice;
+      const livePath = `live/${roomId}/${guesser.uid}`;
 
-      // --- SELF_RANK: บ็อบส่งก่อน มุมมองของอลิซต้องเปลี่ยนแค่ flag ---
-      const beforeA = (await alice.readView(roomId))!;
-      expect(ack(await bob.command(code, scopedBody(vb, 'self', pick(vb, plan.bSelf)))).ok).toBe(true);
-      const afterA = await waitFor(async () => {
-        const v = await alice.readView(roomId);
-        return v?.game?.submitted.partner ? v : null;
-      }, 'อลิซเห็นว่าบ็อบส่งแล้ว');
-      expect(stable(afterA)).toEqual(stable(beforeA));
-      expect(afterA.phase).toBe('SELF_RANK');
+      let sv = (await setter.readView(roomId))!;
+      let gv = (await guesser.readView(roomId))!;
+      expect(sv.game!.roundIndex).toBe(round);
+      expect(sv.phase).toBe('SELF_RANK');
+      expect(sv.game!.role).toBe('setter');
+      expect(gv.game!.role).toBe('guesser');
 
-      va = afterA;
-      const selfA = await alice.command(code, scopedBody(va, 'self', pick(va, plan.aSelf)));
-      expect(ack(selfA).ok).toBe(true);
-      expect(viewOf(selfA).phase).toBe('GUESS_RANK');
+      // --- SELF_RANK: คนทายรอ — ส่งไม่ได้ และเขียนคำทายสดยังไม่ได้ ---
+      expect(ack(await guesser.command(code, scopedBody(gv, 'self', pick(gv, I)))).code).toBe('NOT_YOUR_TURN');
+      expect(await guesser.canWrite(livePath, liveEntry(gv, I))).toBe(false);
 
-      // --- GUESS_RANK: อลิซเห็นคำตอบตัวเอง แต่ไม่เห็นของบ็อบ ---
-      va = (await alice.readView(roomId))!;
-      vb = (await bob.readView(roomId))!;
-      expect(va.game!.yourSelf).toEqual(pick(va, plan.aSelf));
-      expect(va.game!.reveal).toBeNull();
-      // history มีได้เฉพาะรอบที่เฉลยแล้ว (plan.md §9.3) ส่วนรอบปัจจุบันต้องไม่มีข้อมูลของคู่หูเลย
-      const { history, ...currentRound } = va.game!;
+      const selfRes = await setter.command(code, scopedBody(sv, 'self', pick(sv, plan.self)));
+      expect(ack(selfRes).ok).toBe(true);
+      expect(viewOf(selfRes).phase).toBe('GUESS_RANK');
+
+      // --- GUESS_RANK: คนทายไม่เห็นคำตอบของคนวางในรูปใดเลย ---
+      gv = await waitFor(async () => {
+        const v = await guesser.readView(roomId);
+        return v?.phase === 'GUESS_RANK' ? v : null;
+      }, 'คนทายเห็นว่าถึงตาทาย');
+      expect(gv.game!.yourSelf).toBeNull();
+      expect(gv.game!.reveal).toBeNull();
+      const { history, ...currentRound } = gv.game!;
       expect(history.every((h) => h.roundIndex < round)).toBe(true);
-      expect(JSON.stringify(currentRound)).not.toMatch(/partnerSelf|partnerGuess|breakdown/);
+      expect(JSON.stringify(currentRound)).not.toMatch(/setterOrder|guessOrder|breakdown/);
+      expect(await guesser.canRead(`rooms/${roomId}/state`)).toBe(false);
+      expect(await guesser.canRead(`rooms/${roomId}/turn`)).toBe(false);
 
-      const beforeGuessA = va;
-      expect(ack(await bob.command(code, scopedBody(vb, 'guess', pick(vb, plan.bGuess)))).ok).toBe(true);
-      const afterGuessA = await waitFor(async () => {
-        const v = await alice.readView(roomId);
-        return v?.game?.submitted.partner ? v : null;
-      }, 'อลิซเห็นว่าบ็อบทายแล้ว');
-      expect(stable(afterGuessA)).toEqual(stable(beforeGuessA));
-      expect(afterGuessA.game!.totals.you).toBe(EXPECTED_A.slice(0, round).reduce((s, x) => s + x, 0));
+      // --- คำทายสด: เฉพาะคนทาย เฉพาะรอบนี้ และคนวางอ่านได้ ---
+      sv = (await setter.readView(roomId))!;
+      expect(sv.game!.yourSelf).toEqual(pick(sv, plan.self));
+      expect(await guesser.canWrite(livePath, liveEntry(gv, R))).toBe(true);
+      expect(await setter.readValue(livePath)).toMatchObject({ key: gv.game!.liveKey, order: pick(gv, R) });
+      expect(await setter.canWrite(livePath, liveEntry(gv, I))).toBe(false);
+      expect(await setter.canWrite(`live/${roomId}/${setter.uid}`, liveEntry(gv, I))).toBe(false);
+      expect(await carol.canRead(`live/${roomId}`)).toBe(false);
+      expect(await guesser.canWrite(livePath, { ...liveEntry(gv, I), extra: 1 })).toBe(false);
+      expect(await guesser.canWrite(livePath, { ...liveEntry(gv, I), order: pick(gv, I).slice(0, 4) })).toBe(false);
+      if (previousKey) expect(await guesser.canWrite(livePath, liveEntry(gv, I, previousKey))).toBe(false);
+      previousKey = gv.game!.liveKey;
 
-      const guessA = await alice.command(code, scopedBody(afterGuessA, 'guess', pick(afterGuessA, plan.aGuess)));
-      expect(ack(guessA).ok).toBe(true);
+      // คนวางทายไม่ได้
+      expect(ack(await setter.command(code, scopedBody(sv, 'guess', pick(sv, I)))).code).toBe('NOT_YOUR_TURN');
 
-      // --- REVEAL: ทั้งคู่เห็นเฉลยพร้อมกันใน phase เดียว ---
-      va = viewOf(guessA);
-      vb = await waitFor(async () => {
-        const v = await bob.readView(roomId);
+      const guessRes = await guesser.command(code, scopedBody(gv, 'guess', pick(gv, plan.guess)));
+      expect(ack(guessRes).ok).toBe(true);
+
+      // --- REVEAL: ทั้งคู่เห็นเฉลยเดียวกัน คะแนนเข้าคนทาย ---
+      gv = viewOf(guessRes);
+      sv = await waitFor(async () => {
+        const v = await setter.readView(roomId);
         return v?.phase === 'REVEAL' ? v : null;
-      }, 'บ็อบเห็นเฉลย');
-      expect(va.phase).toBe('REVEAL');
-      expect(va.game!.reveal!.yourGuessScore.score).toBe(EXPECTED_A[round]);
-      expect(va.game!.reveal!.partnerGuessScore.score).toBe(EXPECTED_B[round]);
-      expect(vb.game!.reveal!.yourGuessScore.score).toBe(EXPECTED_B[round]);
-      expect(vb.game!.reveal!.partnerSelf).toEqual(va.game!.reveal!.yourSelf);
+      }, 'คนวางเห็นเฉลย');
+      expect(gv.phase).toBe('REVEAL');
+      expect(gv.game!.reveal!.setter).toBe('partner');
+      expect(sv.game!.reveal!.setter).toBe('you');
+      expect(gv.game!.reveal!.score.score).toBe(EXPECTED[round]);
+      expect(sv.game!.reveal!.score).toEqual(gv.game!.reveal!.score);
+      expect(gv.game!.reveal!.setterOrder).toEqual(pick(gv, plan.self));
+      // ผ่านช่วงทายแล้ว server ลบคำทายสด และเขียนใหม่ไม่ได้
+      await waitFor(async () => (await setter.readValue(`live/${roomId}`)) === null || null, 'ลบคำทายสด');
+      expect(await guesser.canWrite(livePath, liveEntry(gv, I))).toBe(false);
 
-      // --- continue barrier: คนเดียวกดไม่เลื่อน ---
-      const contA = await alice.command(code, scopedBody(va, 'continue'));
-      expect(viewOf(contA).phase).toBe('REVEAL');
-      const contB = await bob.command(code, scopedBody(vb, 'continue'));
-      expect(ack(contB).ok).toBe(true);
-      expect(viewOf(contB).phase).toBe(round === 5 ? 'RESULTS' : 'SELF_RANK');
+      // --- ไปต่อ: คนวางกดคนเดียว คนทายกดไม่ได้ ---
+      expect(ack(await guesser.command(code, scopedBody(gv, 'continue'))).code).toBe('NOT_YOUR_TURN');
+      const cont = await setter.command(code, scopedBody(sv, 'continue'));
+      expect(ack(cont).ok).toBe(true);
+      expect(viewOf(cont).phase).toBe(round === 5 ? 'RESULTS' : 'SELF_RANK');
     }
 
     const finalA = (await alice.readView(roomId))!;
     const finalB = (await bob.readView(roomId))!;
     expect(finalA.phase).toBe('RESULTS');
-    expect(finalA.game!.totals).toEqual({ you: 44, partner: 38 });
-    expect(finalB.game!.totals).toEqual({ you: 38, partner: 44 });
+    expect(finalA.game!.totals).toEqual({ you: 24, partner: 16 });
+    expect(finalB.game!.totals).toEqual({ you: 16, partner: 24 });
     expect(finalA.game!.history.map((h) => h.roundIndex)).toEqual([0, 1, 2, 3, 4, 5]);
-  }, 180_000);
+  }, 240_000);
 
   it('rematch ต้องยืนยันทั้งสองคน แล้วเกมใหม่เริ่มจากศูนย์ด้วย game ID ใหม่', async () => {
     const va = (await alice.readView(roomId))!;

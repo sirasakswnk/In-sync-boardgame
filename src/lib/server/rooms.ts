@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
 import type { Reference } from 'firebase-admin/database';
 import {
   applyCommand,
+  buildTurn,
   buildViews,
   createRoomState,
   currentPhase,
@@ -30,7 +31,10 @@ import { ApiError, statusFor } from './http';
  *   /users/$uid               → { displayName, avatarId, activeRoomId, updatedAt }
  *   /rooms/$roomId/state      → RoomState (client อ่านไม่ได้)
  *   /rooms/$roomId/views/$uid → PlayerView (เจ้าของอ่านได้คนเดียว)
+ *   /rooms/$roomId/turn       → { key, phase, guesserUid } ของรอบปัจจุบัน (client อ่านไม่ได้ ใช้ใน rules ของ /live)
  *   /rooms/$roomId/presence/$uid/$connId → true (สมาชิกอ่าน / เจ้าของเขียน)
+ *   /live/$roomId/$uid        → คำทายระหว่างเรียงของคนทาย (สมาชิกอ่าน / คนทายเขียนได้เฉพาะช่วง GUESS_RANK)
+ *                               อยู่นอกโหนดห้อง เพื่อไม่ให้การเขียนถี่ ๆ ชนกับ transaction ของห้อง
  *
  * ทุกการเปลี่ยนแปลงของห้องทำใน transaction บน /rooms/$roomId โหนดเดียว
  * จึงเขียน state + views ของทั้งคู่พร้อมกันแบบอะตอมมิก และอ่าน presence ในจังหวะเดียวกัน
@@ -46,6 +50,7 @@ export type UserProfile = {
 type RoomNode = {
   state?: unknown;
   views?: unknown;
+  turn?: unknown;
   presence?: Record<string, Record<string, unknown> | null> | null;
 };
 
@@ -154,7 +159,7 @@ async function mutateRoom<T>(
         return current;
       }
       outcome = { value, state: next };
-      return clean({ ...current, state: next, views: buildViews(next) });
+      return clean({ ...current, state: next, views: buildViews(next), turn: buildTurn(next) });
     },
     undefined,
     false,
@@ -289,6 +294,11 @@ export async function runCommand(uid: string, code: string, cmd: Command): Promi
     );
   }
 
+  // คำทายสดใช้แค่ช่วง GUESS_RANK — ผ่านช่วงนั้นหรือปิดห้องแล้วลบทิ้ง (best-effort: rules กันเขียนค้างอยู่แล้ว)
+  if (ack.ok && (cmd.kind === 'guess' || cmd.kind === 'leave') && currentPhase(room) !== 'GUESS_RANK') {
+    await db().ref(`live/${roomId}`).remove().catch(() => undefined);
+  }
+
   return { ack, view: projectRoomForPlayer(room, uid) };
 }
 
@@ -304,6 +314,7 @@ export async function cleanupExpiredRooms(now = Date.now(), limit = 200): Promis
     const state = normalizeRoomState(child.child('state').val());
     // ลบทั้งโหนดห้อง: คำตอบ คำทาย คะแนน receipts ไปพร้อมกัน (plan.md §11 retention)
     updates[`rooms/${child.key}`] = null;
+    updates[`live/${child.key}`] = null;
     if (state?.code) updates[`roomCodes/${state.code}`] = null;
     count++;
   });

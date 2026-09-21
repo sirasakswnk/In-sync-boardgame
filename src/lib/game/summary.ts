@@ -19,7 +19,7 @@ export function bestRound(
   return best;
 }
 
-/** จำนวนรอบที่อันดับหนึ่งตรงกัน — เป็นข้อมูลชวนคุย ไม่ใช่คะแนน */
-export function sameTopCount(history: readonly RevealRound[]): number {
-  return history.filter((r) => r.sameTopPick).length;
+/** จำนวนการ์ดที่ทายตรงเป๊ะตลอดเกมของคนที่ทายในรอบเหล่านั้น — ข้อมูลชวนคุย ไม่ใช่คะแนนเพิ่ม */
+export function exactHits(history: readonly RevealRound[]): number {
+  return history.reduce((n, r) => n + r.score.breakdown.filter((e) => e.distance === 0).length, 0);
 }

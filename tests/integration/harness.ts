@@ -262,6 +262,10 @@ export class Player {
     }
   }
 
+  async readValue(path: string): Promise<unknown> {
+    return (await get(ref(this.db, path))).val();
+  }
+
   async canWrite(path: string, value: unknown): Promise<boolean> {
     try {
       await set(ref(this.db, path), value);
@@ -303,6 +307,7 @@ export class Janitor {
     const updates: Record<string, null> = {};
     for (const [roomId, code] of this.rooms) {
       updates[`rooms/${roomId}`] = null;
+      updates[`live/${roomId}`] = null;
       updates[`roomCodes/${code}`] = null;
     }
     for (const p of this.players) updates[`users/${p.uid}`] = null;

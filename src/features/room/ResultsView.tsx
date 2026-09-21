@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import {
   bestRound,
+  exactHits,
+  GUESSES_PER_PLAYER,
   MAX_GAME_SCORE,
   MAX_ROUND_SCORE,
+  OPTIONS_PER_ROUND,
   outcomeOf,
-  sameTopCount,
   type PlayerView,
   type RevealRound,
 } from '@/lib/game';
@@ -24,9 +25,13 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
   const partnerName = view.partner?.displayName ?? 'คู่หู';
   const outcome = outcomeOf(game.totals);
   const history = game.history;
-  const yourBest = bestRound(history, (r) => r.yourGuessScore.score);
-  const partnerBest = bestRound(history, (r) => r.partnerGuessScore.score);
-  const sameTop = sameTopCount(history);
+  // คุณเป็นคนทายในรอบที่คู่หูวาง และกลับกัน
+  const youGuessed = history.filter((r) => r.setter === 'partner');
+  const partnerGuessed = history.filter((r) => r.setter === 'you');
+  const yourBest = bestRound(youGuessed, (r) => r.score.score);
+  const partnerBest = bestRound(partnerGuessed, (r) => r.score.score);
+  const yourHits = exactHits(youGuessed);
+  const partnerHits = exactHits(partnerGuessed);
 
   const key = `rematch:${game.id}`;
   const sending = cmds.state.kind === 'sending' && cmds.state.key === key;
@@ -54,7 +59,9 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
           {headline.emoji}
         </span>
         <h1 className={styles.resultsTitle}>{headline.text}</h1>
-        <p className={roomStyles.muted}>คะแนนมาจากการทายอันดับของอีกคน รอบละเต็ม {MAX_ROUND_SCORE}</p>
+        <p className={roomStyles.muted}>
+          ผลัดกันทายคนละ {GUESSES_PER_PLAYER} รอบ · เต็มคนละ {MAX_GAME_SCORE}
+        </p>
       </section>
 
       <section className={styles.scoreCards} aria-label="คะแนนรวม">
@@ -78,7 +85,7 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
             icon="🏅"
             title="รอบที่คุณทายแม่นที่สุด"
             round={yourBest}
-            score={yourBest.yourGuessScore.score}
+            score={yourBest.score.score}
           />
         )}
         {partnerBest && (
@@ -86,16 +93,18 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
             icon="🌟"
             title={`รอบที่${partnerName}ทายคุณแม่นที่สุด`}
             round={partnerBest}
-            score={partnerBest.partnerGuessScore.score}
+            score={partnerBest.score.score}
           />
         )}
         <div className={styles.highlight}>
           <span className={styles.hlIcon} aria-hidden="true">
-            💞
+            🎯
           </span>
           <span>
-            <strong>อันดับหนึ่งตรงกัน {sameTop} จาก {history.length} รอบ</strong>
-            <small>เป็นแค่เรื่องชวนคุย ไม่ใช่คะแนนความเข้ากันได้</small>
+            <strong>
+              ทายตรงเป๊ะ · คุณ {yourHits} ใบ · {partnerName} {partnerHits} ใบ
+            </strong>
+            <small>จากการ์ดที่แต่ละคนทาย คนละ {youGuessed.length * OPTIONS_PER_ROUND} ใบ</small>
           </span>
         </div>
       </section>
@@ -175,30 +184,23 @@ function Highlight({ icon, title, round, score }: { icon: string; title: string;
 }
 
 function HistoryRound({ round, partnerName }: { round: RevealRound; partnerName: string }) {
-  const [tab, setTab] = useState<'you' | 'partner'>('you');
+  const youSet = round.setter === 'you';
+  const who = youSet ? `${partnerName}ทายคุณ` : `คุณทาย${partnerName}`;
   return (
     <details className={styles.historyItem}>
       <summary>
         <span className={styles.historyNum}>{round.roundIndex + 1}</span>
-        <span className={styles.historyPrompt}>{round.question.prompt}</span>
-        <span className={styles.historyScores}>
-          +{round.yourGuessScore.score} / +{round.partnerGuessScore.score}
+        <span className={styles.historyPrompt}>
+          {round.question.prompt}
+          <small className={styles.historyWho}>{who}</small>
         </span>
+        <span className={styles.historyScores}>+{round.score.score}</span>
       </summary>
       <div className={styles.historyBody}>
-        <div className={styles.miniTabs}>
-          <button type="button" aria-pressed={tab === 'you'} onClick={() => setTab('you')}>
-            คุณทาย{partnerName} (+{round.yourGuessScore.score})
-          </button>
-          <button type="button" aria-pressed={tab === 'partner'} onClick={() => setTab('partner')}>
-            {partnerName}ทายคุณ (+{round.partnerGuessScore.score})
-          </button>
-        </div>
         <RevealBreakdown
-          key={tab}
           question={round.question}
-          score={tab === 'you' ? round.yourGuessScore : round.partnerGuessScore}
-          subjectName={tab === 'you' ? partnerName : 'คุณ'}
+          score={round.score}
+          subjectName={youSet ? 'คุณ' : partnerName}
           animate={false}
         />
       </div>

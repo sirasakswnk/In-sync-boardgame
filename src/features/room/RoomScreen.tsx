@@ -14,6 +14,8 @@ import { RankStage } from './RankStage';
 import { ResultsView } from './ResultsView';
 import { RevealView } from './RevealView';
 import { RoomLoading, RoomProblem } from './RoomStates';
+import { WaitingTurn } from './WaitingTurn';
+import { WatchGuess } from './WatchGuess';
 import styles from './room.module.css';
 
 /**
@@ -56,6 +58,10 @@ export function RoomScreen({ code }: { code: string }) {
   const inGame = view.phase !== 'LOBBY';
   const stage =
     view.phase === 'GUESS_RANK' ? 'guess' : view.phase === 'REVEAL' || view.phase === 'RESULTS' ? 'reveal' : 'self';
+  // ผลัดเทิร์น: SELF_RANK เป็นตาคนวาง, GUESS_RANK เป็นตาคนทาย — อีกคนเห็นหน้ารอ/หน้าดูสด
+  const myTurnToRank =
+    (view.phase === 'SELF_RANK' && view.game?.role === 'setter') ||
+    (view.phase === 'GUESS_RANK' && view.game?.role === 'guesser');
 
   return (
     <div className={styles.shell} data-stage={stage}>
@@ -70,7 +76,7 @@ export function RoomScreen({ code }: { code: string }) {
           )}
           {view.partner && !room.partnerOnline && inGame && view.phase !== 'RESULTS' && (
             <Banner tone="warn" icon="💤" live>
-              {partnerName} หลุดการเชื่อมต่ออยู่ — เรียงการ์ดต่อได้ แต่ส่งหรือไปต่อได้เมื่อ {partnerName} กลับมา
+              {partnerName} หลุดการเชื่อมต่ออยู่ — เกมจะเดินต่อได้เมื่อ {partnerName} กลับมา
             </Banner>
           )}
           {cmds.state.kind === 'error' && cmds.state.code !== 'WRONG_PHASE' && (
@@ -89,8 +95,14 @@ export function RoomScreen({ code }: { code: string }) {
         </div>
 
         {view.phase === 'LOBBY' && <LobbyView view={view} partnerOnline={room.partnerOnline} cmds={cmds} />}
-        {(view.phase === 'SELF_RANK' || view.phase === 'GUESS_RANK') && (
+        {myTurnToRank && (
           <RankStage key={`${view.game!.id}:${view.game!.roundIndex}:${view.phase}`} view={view} uid={uid} partnerOnline={room.partnerOnline} cmds={cmds} />
+        )}
+        {view.phase === 'SELF_RANK' && view.game!.role === 'guesser' && (
+          <WaitingTurn view={view} partnerOnline={room.partnerOnline} />
+        )}
+        {view.phase === 'GUESS_RANK' && view.game!.role === 'setter' && (
+          <WatchGuess key={view.game!.liveKey} view={view} partnerOnline={room.partnerOnline} />
         )}
         {view.phase === 'REVEAL' && (
           <RevealView key={`${view.game!.id}:${view.game!.roundIndex}`} view={view} partnerOnline={room.partnerOnline} cmds={cmds} />

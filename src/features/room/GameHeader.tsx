@@ -48,6 +48,12 @@ export function GameHeader({ view, partnerOnline, onLeave }: Props) {
                 />
               ))}
             </span>
+            {view.phase !== 'RESULTS' && (
+              // สั้นไว้ไม่ให้เบียดชื่อ/คะแนนบนจอ 360px — หัวการ์ดคำถามบอกบทบาทเต็มอยู่แล้ว
+              <span className={styles.roleChip} aria-label={game.role === 'setter' ? 'ตาคุณวาง' : 'ตาคุณทาย'}>
+                {game.role === 'setter' ? '✍️ คุณวาง' : '🔮 คุณทาย'}
+              </span>
+            )}
           </div>
         ) : (
           <span className={styles.vs} aria-hidden="true">
@@ -93,7 +99,16 @@ function PlayerChip({
         <span className={styles.playerName}>{name}</span>
         <span className={styles.playerScore}>
           {isYou && <strong className={styles.youTag}>คุณ · </strong>}
-          {score !== null ? `${score} คะแนน` : online ? 'ออนไลน์' : 'ออฟไลน์'}
+          {score !== null ? (
+            <>
+              {score}
+              <span className={styles.scoreUnit}> คะแนน</span>
+            </>
+          ) : online ? (
+            'ออนไลน์'
+          ) : (
+            'ออฟไลน์'
+          )}
         </span>
       </span>
     </div>

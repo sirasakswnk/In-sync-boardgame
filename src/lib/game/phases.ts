@@ -15,6 +15,12 @@ export function partnerOf(room: RoomState, uid: Uid): Uid | null {
   return memberUids(room).find((u) => u !== uid) ?? null;
 }
 
+/** บทบาทของรอบ: ที่นั่ง `roundIndex % 2` เป็นคนวาง อีกคนเป็นคนทาย — รอบแรก host (ที่นั่ง 0) วาง */
+export function rolesFor(uids: readonly Uid[], roundIndex: number): { setterUid: Uid; guesserUid: Uid } {
+  const setter = roundIndex % 2;
+  return { setterUid: uids[setter]!, guesserUid: uids[1 - setter]! };
+}
+
 export function bothTrue(record: Record<Uid, boolean | unknown> | undefined, uids: readonly Uid[]): boolean {
   return uids.length === 2 && uids.every((u) => Boolean(record?.[u]));
 }

@@ -99,19 +99,25 @@ export class Table {
     expectOk(this.cmd(A, { kind: 'start' }));
   }
 
-  /** เล่นหนึ่งรอบจนถึง REVEAL ด้วยลำดับที่กำหนดเป็น index ของ option */
-  playRound(order: { aSelf: number[]; bSelf: number[]; aGuess: number[]; bGuess: number[] }): void {
-    const ids = this.optionIds();
-    const pick = (idx: number[]) => idx.map((i) => ids[i]!);
-    expectOk(this.scoped(A, 'self', pick(order.aSelf)));
-    expectOk(this.scoped(B, 'self', pick(order.bSelf)));
-    expectOk(this.scoped(A, 'guess', pick(order.aGuess)));
-    expectOk(this.scoped(B, 'guess', pick(order.bGuess)));
+  get setter(): string {
+    return this.round.setterUid;
   }
 
-  continueBoth(): void {
-    expectOk(this.scoped(A, 'continue'));
-    expectOk(this.scoped(B, 'continue'));
+  get guesser(): string {
+    return this.round.guesserUid;
+  }
+
+  /** เล่นหนึ่งเทิร์นจนถึง REVEAL: คนวางส่งลำดับตัวเอง แล้วคนทายส่งคำทาย (index ของ option) */
+  playRound(order: { self: number[]; guess: number[] }): void {
+    const ids = this.optionIds();
+    const pick = (idx: number[]) => idx.map((i) => ids[i]!);
+    expectOk(this.scoped(this.setter, 'self', pick(order.self)));
+    expectOk(this.scoped(this.guesser, 'guess', pick(order.guess)));
+  }
+
+  /** คนวางของรอบนี้กดไปต่อ */
+  advance(): void {
+    expectOk(this.scoped(this.setter, 'continue'));
   }
 }
 

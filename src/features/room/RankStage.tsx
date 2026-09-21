@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
 import { RankList } from '@/components/RankList';
 import type { PlayerView } from '@/lib/game';
 import { clearDrafts, draftKey, loadDraft, saveDraft } from '@/lib/client/drafts';
+import { useLivePublisher } from '@/lib/client/live';
 import type { useCommands } from '@/lib/client/useRoom';
 import styles from './room.module.css';
 
@@ -18,7 +19,7 @@ type Props = {
 };
 
 /**
- * SELF_RANK — “สำหรับฉัน…” และ GUESS_RANK — “ฉันคิดว่า [คู่หู]…”
+ * ตาของคนที่ต้องเรียง: SELF_RANK ของคนวาง — “สำหรับฉัน…” และ GUESS_RANK ของคนทาย — “ฉันคิดว่า [คู่หู]…”
  * คอมโพเนนต์ถูก remount ทุกครั้งที่ เกม/รอบ/ช่วง เปลี่ยน (ผ่าน key) จึงเริ่มจาก layout ใหม่เสมอ
  */
 export function RankStage({ view, uid, partnerOnline, cmds }: Props) {
@@ -35,11 +36,19 @@ export function RankStage({ view, uid, partnerOnline, cmds }: Props) {
   // phase เปลี่ยนแล้ว draft ของช่วงอื่นไม่มีประโยชน์ (plan.md §11)
   useEffect(() => clearDrafts(uid, dk), [uid, dk]);
 
+  // คนวางดูเราเรียงสด ๆ: ส่งลำดับตั้งต้น (หรือ draft ที่กู้หลัง refresh) ทันที แล้วส่งทุกครั้งที่ขยับ
+  const publishLive = useLivePublisher(view.roomId, uid, game.liveKey, guessing && !game.yourGuess);
+  const initialOrder = useRef(order);
+  useEffect(() => {
+    publishLive(initialOrder.current);
+    // ส่งครั้งเดียวตอนเข้าช่วงทาย — การขยับถัดไปส่งผ่าน change()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const confirmed = guessing ? game.yourGuess : game.yourSelf;
   const pending = cmds.pendingFor(key);
   const uncertain = cmds.state.kind === 'uncertain' && cmds.state.key === key;
   const sending = cmds.state.kind === 'sending' && cmds.state.key === key;
-  const partnerDone = game.submitted.partner;
 
   // ส่งแล้ว (server ยืนยัน) → ข้อมูล server ชนะ draft เสมอ
   const lockedOrder = confirmed ?? (pending && 'optionIds' in pending ? pending.optionIds : null);
@@ -52,6 +61,7 @@ export function RankStage({ view, uid, partnerOnline, cmds }: Props) {
   function change(next: string[]) {
     setOrder(next);
     saveDraft(dk, next);
+    publishLive(next);
   }
 
   function submit() {
@@ -82,29 +92,17 @@ export function RankStage({ view, uid, partnerOnline, cmds }: Props) {
           </>
         )}
         <p className={styles.prompt}>{game.question.prompt}</p>
-        {guessing && (
-          <p className={styles.muted}>เรียงตามที่คิดว่า {partnerName} ตอบ ไม่ใช่คำตอบของคุณเอง</p>
+        {guessing ? (
+          <>
+            <p className={styles.muted}>เรียงตามที่คิดว่า {partnerName} ตอบ</p>
+            <p className={styles.watching}>
+              <span aria-hidden="true">👀</span> {partnerName} กำลังดูคุณเรียงอยู่
+            </p>
+          </>
+        ) : (
+          <p className={styles.muted}>เรียงตามใจคุณจริง ๆ แล้ว {partnerName} จะมาทายว่าคุณเรียงแบบไหน</p>
         )}
       </section>
-
-      {guessing && game.yourSelf && (
-        <details className={styles.ownAnswer}>
-          <summary>
-            <span aria-hidden="true">📝</span> ดูอันดับของฉันเอง <small>(คำตอบของคุณ ไม่ใช่ของ{partnerName})</small>
-          </summary>
-          <ol className={styles.ownList}>
-            {game.yourSelf.map((id, i) => {
-              const o = game.question.options.find((x) => x.id === id)!;
-              return (
-                <li key={id}>
-                  <span className={styles.ownRank}>{i + 1}</span>
-                  <span aria-hidden="true">{o.icon}</span> {o.label}
-                </li>
-              );
-            })}
-          </ol>
-        </details>
-      )}
 
       <section className={styles.boardCard} aria-label={guessing ? `คำทายอันดับของ${partnerName}` : 'อันดับของฉัน'}>
         <RankList
@@ -122,13 +120,7 @@ export function RankStage({ view, uid, partnerOnline, cmds }: Props) {
         {confirmed ? (
           <div className={styles.waiting} role="status">
             <span className={styles.waitingPulse} aria-hidden="true" />
-            {partnerDone ? (
-              <span>ส่งครบทั้งคู่แล้ว กำลังไปต่อ…</span>
-            ) : (
-              <span>
-                {guessing ? 'ล็อกคำทายแล้ว' : 'ส่งแล้ว'} • รอ {partnerName}
-              </span>
-            )}
+            <span>{guessing ? 'ล็อกคำทายแล้ว • กำลังเปิดเฉลย…' : `ยืนยันแล้ว • ถึงตา ${partnerName} ทาย`}</span>
           </div>
         ) : uncertain ? (
           <>
@@ -147,9 +139,7 @@ export function RankStage({ view, uid, partnerOnline, cmds }: Props) {
             <p className={styles.hint}>
               {!partnerOnline
                 ? `รอ ${partnerName} กลับมาออนไลน์ก่อนจึงส่งได้`
-                : partnerDone
-                  ? `${partnerName} ส่งแล้ว เหลือคุณคนเดียว`
-                  : 'ส่งแล้วแก้ไม่ได้ — ลากการ์ด หรือใช้ปุ่มลูกศรเพื่อเรียง'}
+                : 'ส่งแล้วแก้ไม่ได้ — ลากการ์ด หรือใช้ปุ่มลูกศรเพื่อเรียง'}
             </p>
           </>
         )}

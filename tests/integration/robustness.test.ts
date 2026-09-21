@@ -105,59 +105,61 @@ describe.skipIf(!firebaseReady())('ความทนทาน: พร้อม�
     expect((await host.readView(roomId))!.game!.yourSelf).toBeNull();
   });
 
-  it('ส่งพร้อมกันทั้งคู่สำเร็จ ไม่ถูก reject เพราะ revision และ phase เลื่อนครั้งเดียว (§13 ข้อ 8)', async () => {
+  it('ส่งพร้อมกันสองคน: คนวางสำเร็จ คนทายถูกปฏิเสธเพราะไม่ใช่ตา และ phase เลื่อนครั้งเดียว (§13 ข้อ 8)', async () => {
     const vh = (await host.readView(roomId))!;
     const vg = (await guest.readView(roomId))!;
+    expect(vh.game!.role).toBe('setter');
     const [rh, rg] = await Promise.all([
       host.command(code, scopedBody(vh, 'self', pick(vh, [0, 1, 2, 3, 4]))),
       guest.command(code, scopedBody(vg, 'self', pick(vg, [4, 3, 2, 1, 0]))),
     ]);
     expect(ack(rh).ok).toBe(true);
-    expect(ack(rg).ok).toBe(true);
+    // ลำดับที่ transaction ตัดสินไม่แน่นอน: ถ้าคำสั่งคนวางลงก่อน phase เลื่อนไปแล้วจึงได้ WRONG_PHASE — ถูกปฏิเสธทั้งสองแบบ
+    expect(['NOT_YOUR_TURN', 'WRONG_PHASE']).toContain(ack(rg).code);
     const after = (await host.readView(roomId))!;
     expect(after.phase).toBe('GUESS_RANK');
     expect(after.game!.roundIndex).toBe(0);
+    expect(after.game!.yourSelf).toEqual(pick(vh, [0, 1, 2, 3, 4]));
   });
 
   it('retry ด้วย commandId เดิมหลัง phase เปลี่ยนได้ ack เดิม และคะแนนไม่บวกซ้ำ (§13 ข้อ 9, 10)', async () => {
-    const vh = (await host.readView(roomId))!;
     const vg = (await guest.readView(roomId))!;
     const guessId = randomUUID();
-    const body = scopedBody(vh, 'guess', pick(vh, [4, 3, 2, 1, 0]));
+    const body = scopedBody(vg, 'guess', pick(vg, [0, 1, 2, 3, 4]));
 
     // double click: ส่ง commandId เดียวกันสองครั้งพร้อมกัน
-    const [first, dup] = await Promise.all([host.command(code, body, guessId), host.command(code, body, guessId)]);
+    const [first, dup] = await Promise.all([guest.command(code, body, guessId), guest.command(code, body, guessId)]);
     expect(ack(first).ok).toBe(true);
     expect(ack(dup).ok).toBe(true);
     expect(ack(dup).revision).toBe(ack(first).revision);
 
-    await guest.command(code, scopedBody(vg, 'guess', pick(vg, [0, 1, 2, 3, 4])));
-    const revealed = (await host.readView(roomId))!;
+    const revealed = (await guest.readView(roomId))!;
     expect(revealed.phase).toBe('REVEAL');
     const totals = revealed.game!.totals;
-    expect(totals.you).toBe(10);
+    expect(totals).toEqual({ you: 10, partner: 0 });
 
     // เน็ตกระตุก: client ส่งคำทายเดิมซ้ำหลัง server เปิดเฉลยไปแล้ว
-    const retry = await host.command(code, body, guessId);
+    const retry = await guest.command(code, body, guessId);
     expect(ack(retry)).toMatchObject({ ok: true, commandId: guessId, revision: ack(first).revision });
-    const again = (await host.readView(roomId))!;
+    const again = (await guest.readView(roomId))!;
     expect(again.game!.totals).toEqual(totals);
     expect(again.revision).toBe(revealed.revision);
 
     // commandId เดิมแต่ payload ต่าง → ปฏิเสธ ไม่เขียนทับ
-    const conflict = await host.command(code, scopedBody(vh, 'guess', pick(vh, [0, 1, 2, 3, 4])), guessId);
+    const conflict = await guest.command(code, scopedBody(vg, 'guess', pick(vg, [4, 3, 2, 1, 0])), guessId);
     expect(ack(conflict).code).toBe('COMMAND_CONFLICT');
   });
 
-  it('continue จากรอบเก่าไม่ทำให้ข้ามรอบ (§13 ข้อ 13)', async () => {
+  it('continue: เฉพาะคนวางกดได้ และ continue จากรอบเก่าไม่ทำให้ข้ามรอบ (§13 ข้อ 13)', async () => {
     const vh = (await host.readView(roomId))!;
     const vg = (await guest.readView(roomId))!;
-    await host.command(code, scopedBody(vh, 'continue'));
-    await guest.command(code, scopedBody(vg, 'continue'));
+    expect(ack(await guest.command(code, scopedBody(vg, 'continue'))).code).toBe('NOT_YOUR_TURN');
+    expect(ack(await host.command(code, scopedBody(vh, 'continue'))).ok).toBe(true);
     const next = (await host.readView(roomId))!;
     expect(next.game!.roundIndex).toBe(1);
+    expect(next.game!.role).toBe('guesser');
 
-    const stale = await guest.command(code, scopedBody(vg, 'continue'));
+    const stale = await host.command(code, scopedBody(vh, 'continue'));
     expect(ack(stale).code).toBe('WRONG_PHASE');
     expect((await host.readView(roomId))!.game!.roundIndex).toBe(1);
   });
@@ -171,12 +173,13 @@ describe.skipIf(!firebaseReady())('ความทนทาน: พร้อม�
 
     await remove(secondTab); // ปิดแท็บที่สอง
     const vg = (await guest.readView(roomId))!;
-    // host ยังออนไลน์จากแท็บแรก: guest ส่งได้ตามปกติ
+    // host ยังออนไลน์จากแท็บแรก: รอบ 2 แขกเป็นคนวาง ส่งได้ตามปกติ
     const r = await guest.command(code, scopedBody(vg, 'self', pick(vg, [0, 1, 2, 3, 4])));
     expect(ack(r).ok).toBe(true);
+    expect(viewOf(r).phase).toBe('GUESS_RANK');
   });
 
-  it('คู่หูหลุด: ส่งไม่ได้ (PARTNER_OFFLINE) แต่ไม่ rollback; ต่อกลับแล้วเล่นต่อที่เดิม (§11, §13 ข้อ 11)', async () => {
+  it('คู่หูหลุด: ส่งไม่ได้ (PARTNER_OFFLINE) แต่ไม่ rollback; ต่อกลับแล้วอยู่ที่เดิม (§11, §13 ข้อ 11)', async () => {
     guest.offline();
     await waitFor(
       async () => (await get(ref(host.db, `rooms/${roomId}/presence/${guest.uid}`))).val() === null,
@@ -184,20 +187,16 @@ describe.skipIf(!firebaseReady())('ความทนทาน: พร้อม�
     );
 
     const vh = (await host.readView(roomId))!;
-    const blocked = await host.command(code, scopedBody(vh, 'self', pick(vh, [0, 1, 2, 3, 4])));
+    const blocked = await host.command(code, scopedBody(vh, 'guess', pick(vh, [0, 1, 2, 3, 4])));
     expect(ack(blocked).code).toBe('PARTNER_OFFLINE');
-    // คำตอบของแขกที่ส่งไปก่อนหลุดยังอยู่
-    expect(vh.game!.submitted.partner).toBe(true);
+    expect((await host.readView(roomId))!.game!.yourGuess).toBeNull();
 
     await guest.online(roomId);
     const vg = (await guest.readView(roomId))!;
-    expect(vg.phase).toBe('SELF_RANK');
+    // คำตอบของแขกที่ส่งไปก่อนหลุดยังอยู่
+    expect(vg.phase).toBe('GUESS_RANK');
     expect(vg.game!.roundIndex).toBe(1);
-    expect(vg.game!.yourSelf).not.toBeNull();
-
-    const ok = await host.command(code, scopedBody(vh, 'self', pick(vh, [0, 1, 2, 3, 4])));
-    expect(ack(ok).ok).toBe(true);
-    expect(viewOf(ok).phase).toBe('GUESS_RANK');
+    expect(vg.game!.yourSelf).toEqual(pick(vg, [0, 1, 2, 3, 4]));
   });
 
   it('รีสตาร์ต server กลางเกมแล้ว state/คะแนน/receipt ยังอยู่ครบ (§11, §13 ข้อ 11)', async () => {
@@ -207,6 +206,9 @@ describe.skipIf(!firebaseReady())('ความทนทาน: พร้อม�
     const body = scopedBody(vh, 'guess', pick(vh, [0, 1, 2, 3, 4]));
     const sent = await host.command(code, body, guessId);
     expect(ack(sent).ok).toBe(true);
+    const revealed = viewOf(sent);
+    expect(revealed.phase).toBe('REVEAL');
+    expect(revealed.game!.totals.you).toBe(before.game!.totals.you + 10);
 
     const port = server.port;
     await server.stop();
@@ -214,9 +216,9 @@ describe.skipIf(!firebaseReady())('ความทนทาน: พร้อม�
 
     const after = viewOf(await host.snapshot(code));
     expect(after.game!.id).toBe(before.game!.id);
-    expect(after.phase).toBe('GUESS_RANK');
+    expect(after.phase).toBe('REVEAL');
     expect(after.game!.yourGuess).toEqual(body.kind === 'guess' ? body.optionIds : null);
-    expect(after.game!.totals).toEqual(before.game!.totals);
+    expect(after.game!.totals).toEqual(revealed.game!.totals);
     // receipt ถูกเก็บใน DB: retry หลังรีสตาร์ตได้ ack เดิม
     const retry = await host.command(code, body, guessId);
     expect(ack(retry)).toMatchObject({ ok: true, commandId: guessId, revision: ack(sent).revision });

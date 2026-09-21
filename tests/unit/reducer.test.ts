@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { joinRoom, ROOM_TTL_MS, type Command } from '@/lib/game';
+import { joinRoom, MAX_GAME_SCORE, ROOM_TTL_MS, type Command } from '@/lib/game';
 import { A, B, C, IDENTITY, REVERSED, Table, expectError, expectOk } from './helpers';
 
 describe('lobby', () => {
@@ -83,32 +83,83 @@ describe('join (plan.md §10.2)', () => {
   });
 });
 
-describe('round flow', () => {
-  it('ส่งคนเดียวไม่เลื่อน phase; คนที่สองส่งแล้วเลื่อนครั้งเดียว (§13 ข้อ 6)', () => {
+describe('turns', () => {
+  it('บทบาทสลับทุกรอบ: รอบแรก host วาง และแต่ละคนได้ทาย 3 รอบ', () => {
     const t = new Table();
     t.startGame();
-    const ids = t.optionIds();
-
-    expectOk(t.scoped(A, 'self', ids));
-    expect(t.game.phase).toBe('SELF_RANK');
-    expectOk(t.scoped(B, 'self', [...ids].reverse()));
-    expect(t.game.phase).toBe('GUESS_RANK');
-    expect(t.game.roundIndex).toBe(0);
-
-    expectOk(t.scoped(A, 'guess', ids));
-    expect(t.game.phase).toBe('GUESS_RANK');
-    expect(t.round.results).toBeNull();
-    expectOk(t.scoped(B, 'guess', ids));
-    expect(t.game.phase).toBe('REVEAL');
-    expect(t.round.results).not.toBeNull();
+    const setters = t.game.rounds.map((r) => r.setterUid);
+    const guessers = t.game.rounds.map((r) => r.guesserUid);
+    expect(setters).toEqual([A, B, A, B, A, B]);
+    expect(guessers).toEqual([B, A, B, A, B, A]);
   });
 
-  it('ส่งซ้ำด้วย commandId ใหม่ได้ ALREADY_SUBMITTED และคำตอบเดิมไม่ถูกแก้', () => {
+  it('layout สุ่มเฉพาะของคนที่ต้องเรียง: คนวางมี self, คนทายมี guess', () => {
+    const t = new Table();
+    t.startGame();
+    const ids = [...t.optionIds()].sort();
+    expect([...t.round.layouts[A]!.self!].sort()).toEqual(ids);
+    expect(t.round.layouts[A]!.guess).toBeUndefined();
+    expect([...t.round.layouts[B]!.guess!].sort()).toEqual(ids);
+    expect(t.round.layouts[B]!.self).toBeUndefined();
+  });
+
+  it('คนผิดบทบาทส่งไม่ได้ (NOT_YOUR_TURN) และไม่ถูกบันทึก', () => {
     const t = new Table();
     t.startGame();
     const ids = t.optionIds();
+    expectError(t.scoped(B, 'self', ids), 'NOT_YOUR_TURN');
+    expect(t.round.self[B]).toBeUndefined();
     expectOk(t.scoped(A, 'self', ids));
-    expectError(t.scoped(A, 'self', [...ids].reverse()), 'ALREADY_SUBMITTED');
+    expectError(t.scoped(A, 'guess', ids), 'NOT_YOUR_TURN');
+    expect(t.round.guess[A]).toBeUndefined();
+    expectOk(t.scoped(B, 'guess', ids));
+    expectError(t.scoped(B, 'continue'), 'NOT_YOUR_TURN');
+    expect(t.game.phase).toBe('REVEAL');
+  });
+});
+
+describe('round flow', () => {
+  it('คนวางส่งแล้วไปช่วงทายทันที คนทายส่งแล้วเปิดเฉลยทันที', () => {
+    const t = new Table();
+    t.startGame();
+    const ids = t.optionIds();
+
+    expectOk(t.scoped(A, 'self', ids));
+    expect(t.game.phase).toBe('GUESS_RANK');
+    expect(t.game.roundIndex).toBe(0);
+    expect(t.round.results).toBeNull();
+
+    expectOk(t.scoped(B, 'guess', ids));
+    expect(t.game.phase).toBe('REVEAL');
+    expect(Object.keys(t.round.results!)).toEqual([B]);
+  });
+
+  it('คนวางกดไปต่อครั้งเดียวก็ไปรอบถัดไป และบทบาทสลับ', () => {
+    const t = new Table();
+    t.startGame();
+    t.playRound({ self: IDENTITY, guess: IDENTITY });
+    expectOk(t.scoped(A, 'continue'));
+    expect(t.game.roundIndex).toBe(1);
+    expect(t.game.phase).toBe('SELF_RANK');
+    expect(t.setter).toBe(B);
+    expect(t.guesser).toBe(A);
+  });
+
+  it('ส่งซ้ำด้วย commandId ใหม่หลังส่งแล้วถูก reject และคำตอบเดิมไม่ถูกแก้', () => {
+    const t = new Table();
+    t.startGame();
+    const ids = t.optionIds();
+    const g = t.game;
+    expectOk(t.scoped(A, 'self', ids));
+    // ส่งครั้งเดียวก็เลื่อน phase แล้ว คำสั่งที่ยังอ้าง SELF_RANK จึงตกรอบ
+    const again = t.cmd(A, {
+      kind: 'self',
+      optionIds: [...ids].reverse(),
+      gameId: g.id,
+      roundIndex: 0,
+      expectedPhase: 'SELF_RANK',
+    });
+    expectError(again, 'WRONG_PHASE');
     expect(t.round.self[A]).toEqual(ids);
   });
 
@@ -146,51 +197,50 @@ describe('round flow', () => {
     expectOk(t.scoped(A, 'self', t.optionIds()));
   });
 
-  it('ส่งพร้อมกันจาก revision เดียวกันสำเร็จทั้งคู่ ไม่ reject เพราะ revision (§13 ข้อ 8)', () => {
+  it('คำสั่งที่สร้างจาก revision เก่าแต่ยังอยู่ช่วงเดิม ไม่ถูก reject เพราะ revision (§13 ข้อ 8)', () => {
     const t = new Table();
     t.startGame();
     const g = t.game;
     const ids = t.optionIds();
-    const make = (): Command => ({
+    const cmd: Command = {
       commandId: randomUUID(),
       kind: 'self',
       optionIds: ids,
       gameId: g.id,
       roundIndex: 0,
       expectedPhase: 'SELF_RANK',
-    });
-    const cmdA = make();
-    const cmdB = make();
-    // ทั้งสองสร้างจาก state เดียวกัน แล้วถูก apply ต่อกันตามลำดับที่ transaction ตัดสิน
-    expectOk(t.send(A, cmdA));
-    expectOk(t.send(B, cmdB));
+    };
+    // มีคำสั่งอื่นเปลี่ยน revision ระหว่างนั้น (คนทายถูกปฏิเสธก็ไม่เปลี่ยน state) — คำสั่งยังผ่าน
+    expectError(t.scoped(B, 'self', ids), 'NOT_YOUR_TURN');
+    expectOk(t.send(A, cmd));
     expect(t.game.phase).toBe('GUESS_RANK');
   });
 
-  it('คำทายเริ่มจากลำดับสุ่มแยก ไม่ prefill จากคำตอบตัวเอง และ refresh ไม่สุ่มใหม่', () => {
+  it('คำทายเริ่มจากลำดับสุ่ม ไม่ prefill จากคำตอบของคนวาง และ refresh ไม่สุ่มใหม่', () => {
     const t = new Table();
     t.startGame();
     const layoutsBefore = structuredClone(t.round.layouts);
     const ids = t.optionIds();
     expectOk(t.scoped(A, 'self', [...ids].reverse()));
-    expectOk(t.scoped(B, 'self', ids));
     // layout ของช่วงทายถูกกำหนดตั้งแต่เริ่มเกม ไม่เปลี่ยนตามคำตอบที่ส่ง
     expect(t.round.layouts).toEqual(layoutsBefore);
-    for (const uid of [A, B]) {
-      expect([...t.round.layouts[uid]!.self].sort()).toEqual([...ids].sort());
-      expect([...t.round.layouts[uid]!.guess].sort()).toEqual([...ids].sort());
-    }
+    expect([...t.round.layouts[B]!.guess!].sort()).toEqual([...ids].sort());
   });
 });
 
 describe('scoring direction (§13 ข้อ 3)', () => {
-  it('คะแนน A มาจากคำทายของ A เทียบคำตอบจริงของ B และกลับกัน', () => {
+  it('คะแนนเข้าคนทายเท่านั้น: คำทายของคนทายเทียบคำตอบจริงของคนวาง', () => {
     const t = new Table();
     t.startGame();
-    // A ชอบ I, B ชอบ R; A ทาย B ถูกทั้งหมด (R), B ทาย A แบบกลับด้าน (R) → 2
-    t.playRound({ aSelf: IDENTITY, bSelf: REVERSED, aGuess: REVERSED, bGuess: REVERSED });
-    expect(t.round.results![A]!.score).toBe(10);
+    // รอบ 1: A วาง I, B ทาย R → B ได้ 2, A ไม่ได้อะไร
+    t.playRound({ self: IDENTITY, guess: REVERSED });
     expect(t.round.results![B]!.score).toBe(2);
+    expect(t.round.results![A]).toBeUndefined();
+    expect(t.game.totals).toEqual({ [A]: 0, [B]: 2 });
+    t.advance();
+    // รอบ 2: B วาง R, A ทาย R → A ได้ 10
+    t.playRound({ self: REVERSED, guess: REVERSED });
+    expect(t.round.results![A]!.score).toBe(10);
     expect(t.game.totals).toEqual({ [A]: 10, [B]: 2 });
   });
 });
@@ -202,9 +252,8 @@ describe('idempotency (§10.4, §13 ข้อ 9)', () => {
     const ids = t.optionIds();
     const g = t.game;
     expectOk(t.scoped(A, 'self', ids));
-    expectOk(t.scoped(B, 'self', ids));
 
-    const guessA: Command = {
+    const guessB: Command = {
       commandId: randomUUID(),
       kind: 'guess',
       optionIds: ids,
@@ -212,15 +261,14 @@ describe('idempotency (§10.4, §13 ข้อ 9)', () => {
       roundIndex: 0,
       expectedPhase: 'GUESS_RANK',
     };
-    const first = t.send(A, guessA);
+    const first = t.send(B, guessB);
     expectOk(first);
-    expectOk(t.scoped(B, 'guess', ids));
     expect(t.game.phase).toBe('REVEAL');
     const totals = structuredClone(t.game.totals);
     const revision = t.room.revision;
 
     // เน็ตกระตุก client ส่งซ้ำ — ตอนนี้ server อยู่ REVEAL แล้ว
-    const retry = t.send(A, guessA);
+    const retry = t.send(B, guessB);
     expect(retry).toEqual(first);
     expect(t.game.totals).toEqual(totals);
     expect(t.room.revision).toBe(revision);
@@ -267,9 +315,9 @@ describe('stale commands (§13 ข้อ 13)', () => {
   it('continue จากรอบเก่าไม่ทำให้ข้ามรอบ', () => {
     const t = new Table();
     t.startGame();
-    t.playRound({ aSelf: IDENTITY, bSelf: IDENTITY, aGuess: IDENTITY, bGuess: IDENTITY });
+    t.playRound({ self: IDENTITY, guess: IDENTITY });
     const g = t.game;
-    t.continueBoth();
+    t.advance();
     expect(t.game.roundIndex).toBe(1);
     expect(t.game.phase).toBe('SELF_RANK');
 
@@ -282,8 +330,8 @@ describe('stale commands (§13 ข้อ 13)', () => {
     const t = new Table();
     t.startGame();
     for (let i = 0; i < 6; i++) {
-      t.playRound({ aSelf: IDENTITY, bSelf: IDENTITY, aGuess: IDENTITY, bGuess: IDENTITY });
-      t.continueBoth();
+      t.playRound({ self: IDENTITY, guess: IDENTITY });
+      t.advance();
     }
     const oldGameId = t.game.id;
     expectOk(t.scoped(A, 'rematch'));
@@ -300,44 +348,42 @@ describe('stale commands (§13 ข้อ 13)', () => {
 });
 
 describe('full game (§13 ข้อ 15, 16)', () => {
+  // คนวางสลับ A, B, A, B, A, B → คนทาย B, A, B, A, B, A
   const plan = [
-    { aSelf: IDENTITY, bSelf: IDENTITY, aGuess: IDENTITY, bGuess: [2, 1, 0, 3, 4] }, // A10 B6
-    { aSelf: IDENTITY, bSelf: REVERSED, aGuess: REVERSED, bGuess: REVERSED }, // A10 B2
-    { aSelf: REVERSED, bSelf: IDENTITY, aGuess: [1, 0, 2, 3, 4], bGuess: REVERSED }, // A8 B10
-    { aSelf: IDENTITY, bSelf: IDENTITY, aGuess: REVERSED, bGuess: IDENTITY }, // A2 B10
-    { aSelf: IDENTITY, bSelf: IDENTITY, aGuess: [2, 1, 0, 3, 4], bGuess: [1, 0, 2, 3, 4] }, // A6 B8
-    { aSelf: IDENTITY, bSelf: IDENTITY, aGuess: [0, 1, 2, 4, 3], bGuess: REVERSED }, // A8 B2
+    { self: IDENTITY, guess: [2, 1, 0, 3, 4] }, // B6
+    { self: REVERSED, guess: REVERSED }, // A10
+    { self: IDENTITY, guess: REVERSED }, // B2
+    { self: REVERSED, guess: [3, 4, 2, 1, 0] }, // A8
+    { self: IDENTITY, guess: [1, 0, 2, 3, 4] }, // B8
+    { self: IDENTITY, guess: [2, 1, 0, 3, 4] }, // A6
   ];
-  const expectedA = [10, 10, 8, 2, 6, 8];
-  const expectedB = [6, 2, 10, 10, 8, 2];
+  const expected = [6, 10, 2, 8, 8, 6];
 
-  it('เล่นครบ 6 รอบ คะแนนรายรอบและรวมตรงกับค่าที่คำนวณล่วงหน้า', () => {
+  it('เล่นครบ 6 รอบ คะแนนรายรอบเข้าคนทาย และรวมตรงกับค่าที่คำนวณล่วงหน้า', () => {
     const t = new Table();
     t.startGame();
     plan.forEach((round, i) => {
       expect(t.game.roundIndex).toBe(i);
+      const guesser = t.guesser;
       t.playRound(round);
-      expect(t.round.results![A]!.score).toBe(expectedA[i]);
-      expect(t.round.results![B]!.score).toBe(expectedB[i]);
-      // รอทั้งคู่กดไปต่อ
-      expectOk(t.scoped(A, 'continue'));
-      expect(t.game.phase).toBe('REVEAL');
-      expectOk(t.scoped(B, 'continue'));
+      expect(t.round.results![guesser]!.score).toBe(expected[i]);
+      t.advance();
     });
     expect(t.game.phase).toBe('RESULTS');
     expect(t.game.finishedAt).not.toBeNull();
-    expect(t.game.totals).toEqual({ [A]: 44, [B]: 38 });
+    expect(t.game.totals).toEqual({ [A]: 24, [B]: 16 });
   });
 
-  it('คะแนนเท่ากันเป็นเสมอ; rematch ต้องยืนยันสองคนและเกมใหม่เริ่มศูนย์', () => {
+  it('คะแนนเต็มคนละ 30 เท่ากันเป็นเสมอ; rematch ต้องยืนยันสองคนและเกมใหม่เริ่มศูนย์', () => {
     const t = new Table();
     t.startGame();
     for (let i = 0; i < 6; i++) {
-      t.playRound({ aSelf: IDENTITY, bSelf: REVERSED, aGuess: REVERSED, bGuess: IDENTITY });
-      t.continueBoth();
+      t.playRound({ self: REVERSED, guess: REVERSED });
+      t.advance();
     }
-    expect(t.game.totals[A]).toBe(60);
-    expect(t.game.totals[B]).toBe(60);
+    expect(t.game.totals[A]).toBe(MAX_GAME_SCORE);
+    expect(t.game.totals[B]).toBe(MAX_GAME_SCORE);
+    expect(MAX_GAME_SCORE).toBe(30);
 
     const firstQuestions = t.game.rounds.map((r) => r.question.id);
     expectOk(t.scoped(A, 'rematch'));

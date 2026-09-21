@@ -42,12 +42,20 @@ export type MemberState = {
   joinedAt: number;
 };
 
+export type Role = 'setter' | 'guesser';
+
 export type RoundState = {
   index: number;
   question: Question;
-  /** ลำดับการ์ดตั้งต้น สุ่มแยกตามผู้เล่น/ช่วง บันทึกครั้งเดียว */
-  layouts: Record<Uid, Record<Stage, string[]>>;
+  /** คนวางลำดับของตัวเองในรอบนี้ — สลับที่นั่งทุกรอบ */
+  setterUid: Uid;
+  /** คนทายลำดับของ setter ในรอบนี้ */
+  guesserUid: Uid;
+  /** ลำดับการ์ดตั้งต้น สุ่มแยกตามผู้เล่น/ช่วง บันทึกครั้งเดียว (setter มี self, guesser มี guess) */
+  layouts: Record<Uid, Partial<Record<Stage, string[]>>>;
+  /** มีได้เฉพาะ key ของ setter */
   self: Record<Uid, string[]>;
+  /** มีได้เฉพาะ key ของ guesser */
   guess: Record<Uid, string[]>;
   /** คะแนนของผู้ทาย (key = uid ของคนทาย) มีเมื่อถึง REVEAL เท่านั้น */
   results: Record<Uid, ScoreResult> | null;
@@ -121,18 +129,15 @@ export type PublicMember = {
 
 export type Pair<T> = { you: T; partner: T };
 
+/** เฉลยหนึ่งรอบ: ทางเดียว คือคำทายของ guesser เทียบคำตอบจริงของ setter */
 export type RevealRound = {
   roundIndex: number;
   question: Question;
-  yourSelf: string[];
-  partnerSelf: string[];
-  yourGuess: string[];
-  partnerGuess: string[];
-  /** คุณทายคู่หู: คำทายของคุณเทียบคำตอบจริงของคู่หู */
-  yourGuessScore: ScoreResult;
-  /** คู่หูทายคุณ: คำทายของคู่หูเทียบคำตอบจริงของคุณ */
-  partnerGuessScore: ScoreResult;
-  sameTopPick: boolean;
+  /** ใครเป็นคนวางลำดับในรอบนี้ (อีกคนคือคนทาย) */
+  setter: 'you' | 'partner';
+  setterOrder: string[];
+  guessOrder: string[];
+  score: ScoreResult;
 };
 
 export type PlayerGameView = {
@@ -141,7 +146,13 @@ export type PlayerGameView = {
   roundIndex: number;
   roundCount: number;
   question: Question;
-  /** ลำดับการ์ดตั้งต้นของคุณในช่วงปัจจุบัน */
+  /** บทบาทของคุณในรอบปัจจุบัน */
+  role: Role;
+  /** uid ของคนทายรอบนี้ — ใช้หา path ของคำทายสดใน /live */
+  guesserUid: Uid;
+  /** ป้ายของรอบปัจจุบัน `${gameId}:${roundIndex}` ใช้กรองคำทายสดที่ค้างจากรอบอื่น */
+  liveKey: string;
+  /** ลำดับการ์ดตั้งต้นของคุณในช่วงปัจจุบัน (ว่างถ้าช่วงนี้ไม่ใช่ตาคุณเรียง) */
   layout: string[];
   yourSelf: string[] | null;
   yourGuess: string[] | null;
