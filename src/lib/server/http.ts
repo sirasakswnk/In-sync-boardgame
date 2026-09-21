@@ -51,7 +51,9 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
       console.error('[config]', e.message);
       return errorJson('INTERNAL', 503);
     }
-    console.error('[api] unexpected error:', e instanceof Error ? e.name : typeof e);
+    // ข้อความจาก firebase-admin ไม่มี credential ปน จึง log ได้ — ใช้ไล่ปัญหาใน Vercel Logs
+    const code = (e as { code?: unknown } | null)?.code;
+    console.error('[api] unexpected error:', e instanceof Error ? `${e.name}: ${e.message}` : typeof e, code ?? '');
     return errorJson('INTERNAL', 500);
   }
 }
