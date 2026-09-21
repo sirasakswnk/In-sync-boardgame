@@ -1,0 +1,22 @@
+# ใช้เมื่อ deploy ด้วย `npx vercel` จากเครื่อง — กันความลับและไฟล์เฉพาะเครื่องไม่ให้ถูกอัปโหลด
+# (ถ้า deploy ผ่าน GitHub ไฟล์เหล่านี้ไม่อยู่ใน repo อยู่แล้ว)
+
+# ความลับ: ตั้งค่าจริงใน Vercel → Settings → Environment Variables แทน
+.env
+.env.local
+.env.*.local
+*serviceAccount*.json
+firebase-adminsdk-*.json
+.firebase/
+
+# สร้างใหม่ตอน build บน Vercel
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# ไฟล์เฉพาะเครื่อง
+.claude/
+.vercel
+*.log
