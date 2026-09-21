@@ -1,0 +1,29 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+
+# ห้าม commit ความลับเด็ดขาด
+.env
+.env.local
+.env.*.local
+*serviceAccount*.json
+firebase-adminsdk-*.json
+.firebase/
+
+# เครื่องมือ/ระบบ
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+
+# Firebase emulator logs
+*-debug.log
+
+# การตั้งค่าเฉพาะเครื่อง
+.claude/

@@ -1,0 +1,249 @@
+.home {
+  display: grid;
+  /* minmax(0, …) กันลูกที่กว้างเกินดันให้ทั้งหน้ากว้างกว่าจอ */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+
+@media (min-width: 880px) {
+  .home {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 56px;
+    min-height: 100dvh;
+    padding-block: 48px;
+  }
+}
+
+/* ---------- hero ---------- */
+
+.hero {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+
+.logo {
+  position: relative;
+  width: 132px;
+  height: 96px;
+  margin-bottom: 4px;
+}
+
+.miniCard {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 74px;
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow: var(--shadow-card);
+  font-size: 28px;
+  animation: float 5s ease-in-out infinite;
+}
+
+.cardA {
+  left: 0;
+  top: 14px;
+  background: var(--coral-soft);
+  transform: rotate(-12deg);
+}
+
+.cardB {
+  left: 36px;
+  top: 0;
+  z-index: 1;
+  animation-delay: -1.6s;
+}
+
+.cardC {
+  left: 72px;
+  top: 14px;
+  background: var(--lavender-soft);
+  transform: rotate(12deg);
+  animation-delay: -3.2s;
+}
+
+.heart {
+  position: absolute;
+  right: -10px;
+  bottom: -8px;
+  z-index: 2;
+  font-size: 30px;
+  animation: beat 2.4s ease-in-out infinite;
+}
+
+@keyframes float {
+  50% {
+    translate: 0 -5px;
+  }
+}
+
+@keyframes beat {
+  0%,
+  100% {
+    scale: 1;
+  }
+  15% {
+    scale: 1.15;
+  }
+  30% {
+    scale: 1;
+  }
+}
+
+.title {
+  font-size: clamp(2.1rem, 8vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.tagline {
+  max-width: 34ch;
+  color: var(--ink-muted);
+  font-size: 1.1rem;
+}
+
+.steps {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 70%);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+}
+
+.steps strong {
+  display: block;
+  font-weight: 600;
+}
+
+.steps small {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.stepNum {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--coral);
+  font-weight: 700;
+}
+
+.stepGuess {
+  background: var(--lavender);
+}
+
+.stepReveal {
+  background: var(--teal);
+  color: var(--paper);
+}
+
+/* ---------- panel ---------- */
+
+.panel {
+  display: grid;
+  gap: 16px;
+  padding: 22px 18px;
+  border-radius: 26px;
+  background: var(--paper);
+  box-shadow: var(--shadow-lift);
+}
+
+@media (min-width: 480px) {
+  .panel {
+    padding: 28px;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: var(--line);
+}
+
+.joinForm {
+  display: flex;
+  gap: 10px;
+}
+
+.codeInput {
+  flex: 1;
+  /* input มีความกว้างตั้งต้น ~20 ตัวอักษร ต้องตั้ง width เองไม่งั้นดันฟอร์มจนล้นจอ 360px */
+  width: 0;
+  min-width: 0;
+  min-height: 50px;
+  padding: 10px 16px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.codeInput::placeholder {
+  letter-spacing: normal;
+  font-weight: 400;
+  font-size: 1rem;
+  color: var(--ink-muted);
+}
+
+.codeInput:focus-visible {
+  outline: none;
+  border-color: var(--lavender-ink);
+  box-shadow: 0 0 0 4px var(--lavender-soft);
+}
+
+.fieldError {
+  margin-top: -6px;
+  color: var(--coral-ink);
+  font-size: 0.9rem;
+}
+
+.note {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.code {
+  letter-spacing: 0.12em;
+}
+
+.activeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

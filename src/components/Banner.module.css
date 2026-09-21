@@ -1,0 +1,38 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  animation: in var(--dur-move) var(--ease-out);
+}
+
+.icon {
+  flex: none;
+  font-size: 1.1rem;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.action {
+  flex: none;
+}
+
+.info { background: var(--lavender-soft); color: var(--lavender-ink); }
+.warn { background: var(--amber-soft); color: var(--amber-ink); }
+.error { background: var(--coral-soft); color: var(--coral-ink); }
+.success { background: var(--teal-soft); color: var(--teal-ink); }
+
+@keyframes in {
+  from { opacity: 0; transform: translateY(-4px); }
+}
+
+@media (max-width: 420px) {
+  .banner { flex-wrap: wrap; }
+  .action { width: 100%; }
+}

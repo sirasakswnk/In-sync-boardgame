@@ -1,0 +1,12 @@
+/**
+ * UUID v4 ที่ใช้ได้แม้ไม่ใช่ secure context
+ * (เล่นผ่าน LAN ด้วย http://192.168.x.x จะไม่มี crypto.randomUUID แต่ยังมี getRandomValues)
+ */
+export function uuidv4(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6]! & 0x0f) | 0x40;
+  b[8] = (b[8]! & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0'));
+  return `${h.slice(0, 4).join('')}-${h.slice(4, 6).join('')}-${h.slice(6, 8).join('')}-${h.slice(8, 10).join('')}-${h.slice(10).join('')}`;
+}

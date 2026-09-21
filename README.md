@@ -1,0 +1,344 @@
+# ใจตรงกันแค่ไหน (Heart Sync)
+
+เว็บเกมจัดอันดับสำหรับผู้เล่นสองคน ทั้งคู่เรียงการ์ด 5 ใบตามใจตัวเอง แล้วทายว่าอีกคนเรียงแบบไหน จากนั้นเปิดเฉลยพร้อมกัน หนึ่งเกมมี 6 รอบ คะแนนเต็มคนละ 60
+
+- UI ภาษาไทยทั้งหมด ลากการ์ดได้ด้วยเมาส์/นิ้ว ใช้คีย์บอร์ดได้ และมีปุ่มขึ้น/ลงเสมอ
+- เล่นจากคนละเบราว์เซอร์หรือคนละเครื่องผ่าน backend จริง ไม่มีผู้เล่นจำลอง
+- คำตอบและคำทายเป็นความลับจนทั้งคู่ล็อกคำทาย และบังคับที่ชั้นฐานข้อมูล ไม่ได้แค่ซ่อนใน UI
+- รีเฟรช ปิดแท็บ หรือเน็ตหลุด แล้วกลับเข้าที่นั่งและเกมเดิมได้
+
+> สเปกเต็มอยู่ใน [plan.md](plan.md) และ checklist ในไฟล์นั้นอัปเดตตามสิ่งที่ทำเสร็จและทดสอบแล้วจริง
+
+---
+
+## สารบัญ
+
+1. [สถาปัตยกรรม](#สถาปัตยกรรม)
+2. [สิ่งที่ต้องมี](#สิ่งที่ต้องมี)
+3. [เริ่มเร็วที่สุด: ใช้ Firebase Emulator (ไม่ต้องมีบัญชี)](#เริ่มเร็วที่สุด-ใช้-firebase-emulator-ไม่ต้องมีบัญชี)
+4. [ตั้งค่า Firebase project จริง](#ตั้งค่า-firebase-project-จริง)
+5. [คำสั่งทั้งหมด](#คำสั่งทั้งหมด)
+6. [ทดสอบสองผู้เล่นในเครื่องเดียว](#ทดสอบสองผู้เล่นในเครื่องเดียว)
+7. [เล่นผ่าน LAN](#เล่นผ่าน-lan)
+8. [Deploy ขึ้น Vercel](#deploy-ขึ้น-vercel)
+9. [ข้อมูล: สำรองและล้าง](#ข้อมูล-สำรองและล้าง)
+10. [การทดสอบ](#การทดสอบ)
+11. [ข้อจำกัดที่ทราบ](#ข้อจำกัดที่ทราบ)
+12. [โครงสร้างโปรเจกต์](#โครงสร้างโปรเจกต์)
+
+---
+
+## สถาปัตยกรรม
+
+| ส่วน | ที่ใช้ |
+| --- | --- |
+| Frontend + API | Next.js 16 (App Router) + React 19 + TypeScript |
+| Realtime + ฐานข้อมูล | Firebase Realtime Database (RTDB) |
+| ตัวตนผู้เล่น | Firebase Anonymous Auth (guest ไม่ต้องสมัคร) |
+| Styling | CSS Modules + CSS variables |
+| เรียงการ์ด | dnd-kit (pointer/touch/keyboard) + ปุ่มขึ้นลง |
+| Validation | Zod |
+| Tests | Vitest (unit + integration ที่คุยกับ backend จริง) |
+| ปลายทาง deploy | Vercel (serverless) |
+
+### ทำไมต่างจาก plan.md §8
+
+plan.md เสนอ Node + Express + Socket.IO + SQLite เป็นค่าเริ่มต้น แต่ปลายทางที่เลือกคือ **Vercel + Firebase** ซึ่ง Vercel รันเฉพาะ serverless function อายุสั้น จึง **ถือ Socket.IO server ค้างไว้ไม่ได้** (plan.md §8 เองก็ระบุข้อนี้) จึงเปลี่ยนเป็น:
+
+| plan.md เดิม | ของจริงในโปรเจกต์ |
+| --- | --- |
+| Socket.IO events | RTDB listeners — client ฟังเฉพาะมุมมองของตัวเอง |
+| Socket commands | `POST /api/rooms/[code]/commands` (Next.js route handler) |
+| Cookie session + ตาราง `sessions` | Firebase Anonymous Auth + ID token (`Authorization: Bearer`) |
+| SQLite + migrations | RTDB + `database.rules.json` (ไม่มี SQL migration) |
+| `processed_commands` | `receipts/$uid/$commandId` ในโหนดห้อง |
+| นับ socket เพื่อทำ presence | `onDisconnect()` ของ RTDB หนึ่ง connection ต่อแท็บ |
+| cron ใน process | Vercel Cron → `/api/cron/cleanup` + ตรวจหมดอายุทุกคำสั่ง |
+
+กติกา คะแนน state machine และตารางความลับ (plan.md §4, §5, §9) **คงเดิมทุกข้อ**
+
+### หัวใจของการออกแบบ
+
+```text
+browser ──POST /api/rooms/CODE/commands──▶ route handler (Vercel)
+   ▲                                         │ verifyIdToken → uid
+   │                                         ▼
+   │                       RTDB transaction บน /rooms/$roomId (โหนดเดียว)
+   │                         └─ applyCommand(state, cmd)  ← pure function
+   │                         └─ projectRoomForPlayer(state, uid) ต่อคน
+   │                         └─ เขียน state + views ของทั้งคู่พร้อมกัน
+   └────── onValue(/rooms/$roomId/views/$myUid) ◀──────────┘
+```
+
+- **กติกาทั้งหมดอยู่ใน pure reducer** ที่ [src/lib/game/reducer.ts](src/lib/game/reducer.ts) ไม่ import Firebase เลย (มี lint rule บังคับ) จึงทดสอบได้ครบโดยไม่ต้องมี credential
+- **ทุกคำสั่งคือ transaction เดียว** ตรวจ receipt → สมาชิก → หมดอายุ → เกม/รอบ/phase → เขียนผล → คิดคะแนน → เลื่อน phase → เขียน view ของทั้งคู่ ถ้าสองคนส่งพร้อมกัน RTDB จะ retry ให้เอง phase จึงเลื่อนครั้งเดียว
+- **ความลับบังคับด้วย security rules**: `state` ไม่มีใครอ่านได้, `views/$uid` อ่านได้เฉพาะเจ้าของ, client เขียนได้อย่างเดียวคือ presence ของตัวเอง — ต่อให้เขียน query เองก็อ่านคำตอบของคู่หูไม่ได้
+- **มุมมองของผู้เล่นสร้างแบบ allowlist** ใน [src/lib/game/projection.ts](src/lib/game/projection.ts) คำตอบ/คำทาย/คะแนนของคู่หูในรอบปัจจุบันออกได้ทางเดียวคือเมื่อรอบนั้นมีผลคะแนนแล้ว ซึ่งเกิดตอนเข้า REVEAL เท่านั้น
+
+โครงข้อมูลใน RTDB:
+
+```text
+/roomCodes/$CODE                      → roomId                (ผู้ที่ล็อกอินอ่านได้ เพื่อเข้าห้อง)
+/users/$uid                           → ชื่อ อวาตาร์ ห้องปัจจุบัน   (เจ้าของอ่านได้)
+/rooms/$roomId/state                  → state เต็มของห้อง       (ไม่มี client อ่านได้)
+/rooms/$roomId/views/$uid             → มุมมองของผู้เล่นคนนั้น    (เจ้าของอ่านได้คนเดียว)
+/rooms/$roomId/presence/$uid/$connId  → true                  (สมาชิกอ่าน / เจ้าของเขียน)
+/rateLimits/$hash                     → ตัวนับ create/join       (server เท่านั้น)
+```
+
+---
+
+## สิ่งที่ต้องมี
+
+| เครื่องมือ | เวอร์ชันที่ใช้พัฒนา | หมายเหตุ |
+| --- | --- | --- |
+| Node.js | 24.20.0 (ดู `.nvmrc`) | ขั้นต่ำ 20.9 ตาม engines ของ Next.js 16 |
+| npm | 11.6.2 | ใช้ `package-lock.json` — ติดตั้งด้วย `npm ci` |
+| Java | 21 ขึ้นไป (พัฒนาด้วย 25.0.1) | **เฉพาะเมื่อใช้ Firebase Emulator** |
+
+Firebase CLI ไม่ต้องติดตั้งเอง: สคริปต์เรียก `firebase-tools@15.30.2` ผ่าน `npx` (ดาวน์โหลดครั้งแรกครั้งเดียว)
+
+### เริ่มบน Windows 11
+
+1. ติดตั้ง Node.js 24 LTS จาก <https://nodejs.org> (หรือ `nvm-windows` แล้ว `nvm use 24`)
+2. ถ้าจะใช้ emulator: ติดตั้ง JDK 21+ (เช่น Eclipse Temurin) แล้วเปิด PowerShell ใหม่ ตรวจด้วย `java -version`
+3. เปิด PowerShell ที่โฟลเดอร์โปรเจกต์ แล้ว `npm ci`
+
+---
+
+## เริ่มเร็วที่สุด: ใช้ Firebase Emulator (ไม่ต้องมีบัญชี)
+
+รันทุกอย่างในเครื่อง ไม่ต้องสมัครบริการใดและไม่ต้องใส่ API key
+
+```powershell
+npm ci
+
+# หน้าต่างที่ 1 — Firebase Auth + Realtime Database จำลอง (พอร์ต 9099 / 9000)
+npm run emulators
+
+# หน้าต่างที่ 2 — เว็บ (อ่านค่าจาก .env.emulator)
+npm run dev:emulator
+```
+
+เปิด <http://localhost:3000>
+
+- emulator โหลด `database.rules.json` ตัวเดียวกับ production จึงทดสอบกฎความลับได้จริง
+- ข้อมูลใน emulator หายเมื่อปิด emulator
+- `.env.emulator` ไม่มีความลับ — project ชื่อ `demo-*` ใช้ได้เฉพาะกับ emulator
+
+---
+
+## ตั้งค่า Firebase project จริง
+
+1. สร้าง project ที่ <https://console.firebase.google.com>
+2. **Build → Authentication → Get started → Sign-in method → Anonymous → Enable**
+3. **Build → Realtime Database → Create Database** เลือก location (แนะนำ `asia-southeast1` สิงคโปร์) และเริ่มแบบ *locked mode*
+4. **Project settings → General → Your apps → Add app → Web** แล้วคัดลอกค่า config
+5. **Project settings → Service accounts → Generate new private key** ได้ไฟล์ JSON
+   เก็บไฟล์นี้ให้ดี ห้าม commit และห้ามส่งให้ใคร
+6. คัดลอก `.env.example` เป็น `.env.local` แล้วใส่ค่า:
+
+   ```powershell
+   Copy-Item .env.example .env.local
+   ```
+
+   | ตัวแปร | ค่า |
+   | --- | --- |
+   | `APP_ORIGIN` | `http://localhost:3000` ตอนพัฒนา (ต้องตรงกับที่เบราว์เซอร์เปิด) |
+   | `NEXT_PUBLIC_FIREBASE_*` | จากขั้นที่ 4 (`databaseURL` ดูได้ที่หน้า Realtime Database) |
+   | `FIREBASE_SERVICE_ACCOUNT` | เนื้อหาไฟล์ JSON จากขั้นที่ 5 เป็นบรรทัดเดียว ครอบด้วย `'…'` |
+   | `CRON_SECRET` | สุ่มเอง: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+
+   แปลงไฟล์ JSON เป็นบรรทัดเดียวได้ด้วย:
+
+   ```powershell
+   node -e "console.log(JSON.stringify(require('./path/to/service-account.json')))"
+   ```
+
+7. deploy security rules (ต้องทำครั้งแรก และทุกครั้งที่แก้ `database.rules.json`):
+
+   ```powershell
+   npx --yes firebase-tools@15.30.2 login
+   npm run rules:deploy -- --project <project-id>
+   ```
+
+   ถ้าไม่ deploy rules ฐานข้อมูลจะยังเป็น locked mode และผู้เล่นจะอ่านมุมมองของตัวเองไม่ได้
+8. `npm run dev` แล้วเปิด <http://localhost:3000> — ตรวจความพร้อมได้ที่ <http://localhost:3000/api/health> (ต้องได้ `"database":"ok"`)
+
+---
+
+## คำสั่งทั้งหมด
+
+| คำสั่ง | ทำอะไร |
+| --- | --- |
+| `npm ci` | ติดตั้ง dependency ตาม lockfile |
+| `npm run dev` | dev server ต่อ Firebase ตาม `.env.local` |
+| `npm run emulators` | เปิด Firebase Auth + RTDB emulator |
+| `npm run dev:emulator` | dev server ต่อ emulator (ค่าจาก `.env.emulator`) |
+| `npm run build` | production build |
+| `npm run start` | รัน production build (ต้อง build ก่อน) |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript `--noEmit` |
+| `npm run test` | unit tests: กติกา คะแนน ความลับ reducer คลังคำถาม contrast — **ไม่ต้องมี Firebase** |
+| `npm run test:e2e` | integration: สองผู้เล่นคุยกับ Next.js server + RTDB จริงตาม `.env.local` (ถ้าไม่ได้ตั้งค่าจะถูกข้าม) |
+| `npm run test:e2e:emulator` | integration ชุดเดียวกัน โดยเปิด/ปิด emulator ให้อัตโนมัติ |
+| `npm run check:questions` | ตรวจคลังคำถาม 30 ข้อกับ schema |
+| `npm run rules:deploy` | deploy `database.rules.json` ขึ้น project จริง |
+
+ไม่มี `db:migrate` ตามที่ plan.md §14 เขียนไว้ เพราะ RTDB ไม่มี schema/migration — สิ่งที่เทียบเท่าคือ `rules:deploy` และคลังคำถามอยู่ในซอร์ส ([src/data/questions.th.json](src/data/questions.th.json)) ไม่ต้อง seed ลงฐานข้อมูล
+
+---
+
+## ทดสอบสองผู้เล่นในเครื่องเดียว
+
+ผู้เล่นหนึ่งคน = หนึ่ง browser profile เพราะตัวตน guest เก็บใน IndexedDB ของ profile นั้น
+
+1. เปิดหน้าต่างปกติ → ตั้งชื่อ → **สร้างห้องใหม่** → กด **คัดลอกลิงก์เชิญ**
+2. เปิด **หน้าต่าง Incognito/InPrivate** (หรือ browser profile อื่น หรือคนละเบราว์เซอร์) → วางลิงก์ → ตั้งชื่อ → **เข้าร่วมห้อง**
+3. ทั้งคู่กด **ฉันพร้อมแล้ว** → เจ้าของห้องกด **เริ่มเกม**
+
+ข้อควรรู้:
+
+- **สองแท็บใน profile เดียวกันคือผู้เล่นคนเดียวกัน** ไม่กินที่นั่งที่สอง (ตั้งใจไว้ตาม plan.md §10.1)
+- ปิดแท็บไม่ถือว่าออกจากห้อง ต้องกด **ออกจากห้อง** และยืนยัน ซึ่งจะปิดห้องให้ทั้งคู่
+- เกมไม่มีแชตหรือเสียงในตัว คุยกันต่อหน้าหรือโทรหากันระหว่างเล่น
+
+---
+
+## เล่นผ่าน LAN
+
+ให้เครื่องอื่นในวง Wi‑Fi เดียวกันเข้ามาเล่น:
+
+1. หา IP ของเครื่องที่รัน: `ipconfig` → IPv4 Address เช่น `192.168.1.23`
+2. ตั้ง `APP_ORIGIN` ให้ตรงกับที่ **เบราว์เซอร์ของทุกคน** จะเปิด (คั่นหลายค่าด้วย `,` ได้):
+
+   ```dotenv
+   APP_ORIGIN=http://localhost:3000,http://192.168.1.23:3000
+   ```
+
+3. Next.js bind ทุก network interface อยู่แล้ว รัน `npm run dev` (หรือ `npm run build` แล้ว `npm run start`)
+4. อนุญาตพอร์ต **3000/TCP** ใน Windows Firewall (ครั้งแรก Windows จะถาม ให้เลือก *Private networks*)
+5. เครื่องอื่นเปิด `http://192.168.1.23:3000`
+6. **ถ้าใช้ project จริง**: เพิ่ม `192.168.1.23` ใน Firebase console → Authentication → Settings → **Authorized domains** ไม่อย่างนั้น anonymous sign-in จะถูกปฏิเสธ
+
+โค้ดฝั่ง client ไม่ hardcode `localhost` — ทุก request ใช้ path สัมพัทธ์ ลิงก์เชิญสร้างจาก origin ที่เปิดอยู่จริง และมีทางสำรองสำหรับ http ที่ไม่ใช่ secure context (สร้าง UUID และคัดลอกลิงก์ได้)
+
+หมายเหตุ: emulator ฟังเฉพาะ `127.0.0.1` เครื่องอื่นจึงต่อ emulator ไม่ได้ — การเล่นผ่าน LAN ให้ใช้ project จริง
+
+---
+
+## Deploy ขึ้น Vercel
+
+**ยังไม่ได้ deploy** — โปรเจกต์เตรียมพร้อมไว้ ทำตามนี้เมื่อพร้อม:
+
+1. push โค้ดขึ้น Git provider แล้ว **Import Project** ใน Vercel (ตรวจเจอ Next.js อัตโนมัติ)
+2. **Settings → Environment Variables** ใส่ทุกตัวใน `.env.example` โดย:
+   - `APP_ORIGIN` = โดเมนจริง เช่น `https://heart-sync.vercel.app` (ถ้ามีหลายโดเมนคั่นด้วย `,`)
+   - `FIREBASE_SERVICE_ACCOUNT` = JSON บรรทัดเดียว (ไม่ต้องครอบ quote ใน Vercel)
+   - `CRON_SECRET` = ค่าสุ่มยาว ๆ — Vercel Cron ส่งค่านี้มาใน `Authorization` header ให้เอง
+   - **ห้ามตั้ง** `HS_TEST_SEED`, `FIREBASE_*_EMULATOR_HOST`, `NEXT_PUBLIC_FIREBASE_EMULATOR`
+3. เพิ่มโดเมน Vercel ใน Firebase → Authentication → Settings → **Authorized domains**
+4. `npm run rules:deploy -- --project <project-id>` ถ้ายังไม่เคย
+5. Deploy แล้วตรวจ `https://<โดเมน>/api/health`
+
+สิ่งที่ตั้งไว้แล้วใน [vercel.json](vercel.json): region `sin1` (สิงคโปร์ ใกล้ผู้เล่นไทยและ RTDB `asia-southeast1`) และ cron ล้างห้องหมดอายุวันละครั้ง (20:00 UTC = 03:00 น. เวลาไทย) — แผน Hobby ของ Vercel รัน cron ได้วันละครั้ง ซึ่งพอสำหรับงานนี้ เพราะห้องหมดอายุถูกตรวจในทุกคำสั่งอยู่แล้ว
+
+HTTPS: Vercel ให้อัตโนมัติ ไม่มี cookie ที่ต้องตั้ง `Secure` เพราะใช้ ID token ใน header แทน
+
+---
+
+## ข้อมูล: สำรองและล้าง
+
+- **Emulator**: ข้อมูลหายเมื่อปิด emulator ไม่มีอะไรต้องล้าง
+- **Project จริง — สำรอง**: Firebase console → Realtime Database → ⋮ → **Export JSON** หรือเปิด automated backups (แผน Blaze)
+- **Project จริง — ล้างทั้งหมด**: Realtime Database → เลือกโหนด root → ลบ `rooms`, `roomCodes`, `users`, `rateLimits` (ทำเองเท่านั้น แอปไม่ลบข้อมูลอัตโนมัติตอนเริ่ม)
+- **ล้างอัตโนมัติ**: cron ลบห้องที่ไม่มี activity เกิน 24 ชม. พร้อมคำตอบ คำทาย คะแนน และ receipts ทั้งหมดของห้องนั้น
+- **Integration test** ลบห้อง ผู้ใช้ และบัญชี anonymous ที่สร้างเองทุกครั้งหลังรัน
+
+---
+
+## การทดสอบ
+
+สรุปสิ่งที่ครอบคลุม (รายละเอียดผลการรันจริงอยู่ในรายงานส่งมอบ):
+
+**Unit — `npm run test`** (ไม่ต้องมี Firebase)
+
+- คะแนนตาม plan.md §5: 10 / 8 / 6 / 2, ครบทั้ง 120 permutation อยู่ใน 0..10, ทิศการทาย A→B
+- validation: permutation ผิดทุกแบบ, payload ผิดรูป, ชื่อเล่น 1–20 ตัว (นับแบบ grapheme ภาษาไทย), รหัสห้อง
+- reducer: ส่งคนเดียวไม่เลื่อน phase, ส่งพร้อมกัน, retry commandId เดิมหลัง phase เปลี่ยน, payload ต่างถูก reject, คำสั่งจากรอบ/เกมเก่า, คู่หู offline, ห้องหมดอายุ, ออกจากห้อง, เกมเต็ม 6 รอบ, เสมอ, rematch
+- ความลับ: **non-interference** — สร้างสองโลกที่ต่างกันแค่คำตอบลับของคู่หู แล้วยืนยันว่ามุมมองของเราเหมือนกันทุกไบต์จนถึง REVEAL
+- RTDB round-trip: state/view กู้รูปร่างได้หลัง RTDB ทิ้ง null/array ว่าง
+- contrast: คู่สีข้อความทุกคู่ใน `globals.css` ผ่าน WCAG AA
+
+**Integration — `npm run test:e2e` / `npm run test:e2e:emulator`**
+
+รัน `next dev` จริง แล้วให้ผู้เล่นแต่ละคนเป็น Firebase app แยกกัน (uid, token, การเชื่อมต่อ RTDB ของตัวเอง):
+
+- สร้างห้อง → เข้าห้อง → คนที่สามถูกปฏิเสธ → ready → start → **ครบ 6 รอบ** → คะแนนรวม 44/38 ตรงค่าที่คำนวณล่วงหน้า → rematch → เกมใหม่เริ่มศูนย์ → ออกจากห้อง
+- ระหว่างทางตรวจทุกรอบว่ามุมมองที่อ่านจาก RTDB ไม่เปลี่ยนเมื่อคู่หูส่งคำตอบ (ยกเว้น flag ว่าส่งแล้ว)
+- security rules: อ่าน `state`/view ของคนอื่นไม่ได้, เขียนเกมไม่ได้, ปลอม presence ของคนอื่นไม่ได้
+- join ชิงที่นั่งสุดท้ายพร้อมกัน, ส่งคำตอบพร้อมกัน, double click, retry หลังเฉลย, คำสั่งรอบเก่า
+- คู่หูหลุดจริง (ตัดการเชื่อมต่อ RTDB) → `PARTNER_OFFLINE` → ต่อกลับแล้วเล่นต่อ, เปิดสองแท็บ, **รีสตาร์ต server กลางเกม** แล้ว state/receipt ยังอยู่
+
+### ผลการรันจริง (21 ก.ย. 2026, Windows 11, Node 24.20.0)
+
+| คำสั่ง | ผล |
+| --- | --- |
+| `npm run typecheck` / `npm run lint` | ผ่าน ไม่มี error/warning |
+| `npm run test` | 135/135 ผ่าน (7 ไฟล์) |
+| `npm run check:questions` | 30 ข้อถูก schema, ค่าตั้งต้นมี 25 ข้อ |
+| `npm run test:e2e:emulator` | 18/18 ผ่าน กับ Firebase Local Emulator |
+| `npm run test:e2e` (ไม่มี `.env.local`) | 18 ข้าม — **ยังไม่ได้รันกับ project จริง** |
+| `npm run build` + `npm run start` | ผ่าน; `/`, `/room/CODE` ได้ 200, `/dev/preview` ได้ 404 ใน production |
+
+ตรวจเพิ่มด้วยมือ/สคริปต์ชั่วคราว (ไม่ได้อยู่ในชุดเทสต์ที่ส่งมอบ): Chrome สอง profile เล่นผ่าน UI จริงครบ 6 รอบกับ emulator — เข้าห้องด้วยลิงก์, คนที่สามเห็น “ห้องนี้เต็มแล้ว”, รีเฟรชหลังส่งคำตอบกลับมาสถานะล็อก, WebSocket frames ที่อีกฝั่งได้รับก่อนเฉลยไม่มีคำตอบ/คำทาย/คะแนน (และหลังเฉลยมีจริง), rematch, ออกห้อง; ลากการ์ดด้วยเมาส์/touch, คีย์บอร์ด, ปุ่มขึ้นลง; ทุกหน้าไม่ล้นแนวนอนที่ 360/768/1440 px รวมชื่อยาว 20 ตัว; ปุ่มทุกปุ่ม ≥ 44×44 px
+
+### หน้าตรวจ UI สำหรับนักพัฒนา
+
+`npm run dev` แล้วเปิด `/dev/preview?screen=lobby|self|waiting|guess|reveal|results|join|full` (เติม `&long=1` เพื่อทดสอบชื่อยาว) — ใช้ reducer/projection ตัวจริงสร้าง state ไม่ต่อ backend และถูกปิดเป็น 404 ใน production
+
+**ไม่มี browser-driven E2E ในชุดเทสต์** (ตกลงไว้ว่าไม่ใช้ Playwright) — การลากการ์ด, layout ที่ 360/768/1440 px, reduced motion และ screen reader ต้องตรวจด้วยมือ ดูรายการที่ควรตรวจใน [ข้อจำกัดที่ทราบ](#ข้อจำกัดที่ทราบ)
+
+---
+
+## ข้อจำกัดที่ทราบ
+
+- **ล้างข้อมูลเบราว์เซอร์ = กลับที่นั่งเดิมไม่ได้** ตัวตน guest อยู่ใน IndexedDB ของ browser profile ถ้าล้าง site data/ใช้ incognito ที่ปิดไปแล้ว จะกลายเป็นผู้เล่นใหม่ (ไม่มีบัญชีถาวรใน MVP)
+- ไม่มีแชต เสียง หรือวิดีโอในเกม
+- ไม่มี host migration: host หลุดยังคงที่นั่งไว้ ระหว่างเล่นการไปต่อใช้ความพร้อมของทั้งคู่
+- ไม่มี browser-driven E2E — UI ผ่าน typecheck/lint/build และตรวจโครงสร้างแล้ว แต่ยังต้องเล่นจริงด้วยมือเพื่อยืนยันการลาก, layout มือถือ และ motion
+- rate limit ของ create/join เก็บใน RTDB ต่อ uid และต่อ IP (hash) — บัญชี anonymous สร้างใหม่ได้ง่ายจึงพึ่ง IP ร่วมด้วย ถ้าเล่นหลายคนหลัง NAT เดียวกันอาจชนเพดาน (สร้างห้อง 10 ครั้ง/10 นาที ต่อ IP)
+- Firebase free tier (Spark) มีโควต้าการเชื่อมต่อพร้อมกัน/แบนด์วิดท์ของ RTDB — ถ้าคนเล่นเยอะให้ดูหน้า Usage
+- cron บน Vercel Hobby รันได้วันละครั้ง ห้องที่หมดอายุจึงอาจค้างในฐานข้อมูลได้ถึง ~1 วันก่อนถูกลบ (แต่ใช้ต่อไม่ได้ตั้งแต่ครบ 24 ชม.)
+- ฟอนต์ Noto Sans Thai bundle ผ่าน `@fontsource/noto-sans-thai` (SIL OFL 1.1) — license อยู่ที่ [licenses/NotoSansThai-OFL.txt](licenses/NotoSansThai-OFL.txt)
+
+### แก้ปัญหาที่พบบ่อย
+
+- **emulator ขึ้นไม่ได้ “port taken”** — Java ของ Database Emulator ค้างจากรอบก่อน (พบบน Windows) `npm run test:e2e:emulator` เก็บกวาดให้อัตโนมัติ ถ้าใช้ `npm run emulators` แล้วค้าง ให้รัน:
+  `Get-CimInstance Win32_Process -Filter "Name='java.exe'" | ? CommandLine -match 'firebase-database-emulator' | % { Stop-Process -Id $_.ProcessId -Force }`
+- **ใช้ emulator แล้วได้ 401 ทุกคำสั่ง** — `.env.emulator` ต้องใช้ project `demo-heart-sync` (ตรงกับ `--project` ของ emulator) ห้ามใส่ค่าของ project จริงในไฟล์นี้
+- **ค่าของ project จริงไม่มีผล** — ต้องอยู่ใน `.env.local` Next.js ไม่อ่าน `.env.example`
+
+### Backlog (นอก MVP ตาม plan.md §3)
+
+บัญชีถาวร, จับคู่คนแปลกหน้า, ผู้ชม, มากกว่า 2 คน, คำถามที่ผู้เล่นแต่งเอง, export รูปผลลัพธ์, เสียงประกอบและอีโมจิ realtime, browser E2E อัตโนมัติ
+
+---
+
+## โครงสร้างโปรเจกต์
+
+```text
+src/
+  app/                      Next.js routes: หน้า / , /room/[code] และ /api/*
+  features/home/            หน้าแรก
+  features/room/            Lobby, จัดอันดับ, ทายใจ, เฉลย, ผลรวม
+  components/               RankList (dnd-kit), Avatar, Button, Banner, ConfirmDialog, ProfileFields
+  lib/game/                 กติกาล้วน (ห้าม import Firebase): reducer, scoring, projection, schemas
+  lib/server/               firebase-admin, auth, transaction ของห้อง, rate limit
+  lib/client/               firebase client, useRoom (realtime + resync), drafts
+  data/questions.th.json    คลังคำถาม 30 ข้อ
+tests/unit/                 unit tests
+tests/integration/          สองผู้เล่นกับ backend จริง
+database.rules.json         security rules ของ RTDB (ส่วนสำคัญของความลับ)
+vercel.json                 region + cron
+```

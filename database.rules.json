@@ -1,0 +1,42 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "roomCodes": {
+      "$code": {
+        ".read": "auth != null"
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "rooms": {
+      "$roomId": {
+        "views": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid && root.child('rooms').child($roomId).child('state').child('members').child($uid).exists()"
+          }
+        },
+        "presence": {
+          ".read": "auth != null && root.child('rooms').child($roomId).child('state').child('members').child(auth.uid).exists()",
+          "$uid": {
+            "$connId": {
+              ".write": "auth != null && auth.uid === $uid && $connId.matches(/^[A-Za-z0-9_-]{1,64}$/) && root.child('rooms').child($roomId).child('state').child('members').child($uid).exists()",
+              ".validate": "newData.val() === true"
+            }
+          }
+        }
+      },
+      ".indexOn": [
+        "state/expiresAt"
+      ]
+    },
+    "rateLimits": {
+      ".indexOn": [
+        "windowStart"
+      ]
+    }
+  }
+}
