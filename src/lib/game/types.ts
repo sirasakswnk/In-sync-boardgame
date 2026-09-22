@@ -14,6 +14,8 @@ export type Question = {
   version: number;
   category: Category;
   prompt: string;
+  /** คำถามแบบระบุคนตอบ (มี {who}/{will}) — ห้องที่เริ่มก่อนมีฟิลด์นี้จะไม่มี จึงต้อง fallback เป็น prompt */
+  personal?: string;
   topLabel: string;
   bottomLabel: string;
   options: QuestionOption[];

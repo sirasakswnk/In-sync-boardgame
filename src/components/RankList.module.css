@@ -215,3 +215,160 @@
     padding-left: 38px;
   }
 }
+
+/* ==========================================================================
+ * ธีมโต๊ะบอร์ดเกม — เฉพาะใต้ data-skin="table"
+ * ========================================================================== */
+
+/* ป้ายหัว/ท้ายกระดานเป็นแถบริบบิ้น */
+:global([data-skin='table']) .end {
+  width: fit-content;
+  margin-left: 42px;
+  padding: 3px 18px 3px 12px;
+  background: var(--stage);
+  color: var(--stage-on);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%);
+  box-shadow: 0 2px 0 rgb(0 0 0 / 15%);
+}
+
+/* ช่องอันดับที่พิมพ์บนกระดาน */
+:global([data-skin='table']) .number {
+  position: relative;
+  width: 34px;
+  height: 44px;
+  border: 2px dashed var(--slot-line);
+  border-radius: 9px;
+  background: rgb(255 255 255 / 45%);
+  color: var(--stage-ink);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+:global([data-skin='table']) .number:first-child {
+  border: 2px solid var(--stage-ink);
+  background: var(--stage);
+  color: var(--stage-on);
+  box-shadow: 0 2px 0 rgb(0 0 0 / 18%);
+}
+
+:global([data-skin='table']) .number:first-child::after {
+  content: '★';
+  position: absolute;
+  top: -9px;
+  right: -8px;
+  color: var(--gold);
+  font-size: 0.95rem;
+  text-shadow: 0 1px 0 #7a5716;
+}
+
+:global([data-skin='table']) .grid {
+  grid-template-columns: 34px minmax(0, 1fr);
+}
+
+/* ไพ่ขอบขาวหนา */
+:global([data-skin='table']) .card {
+  padding: 3px;
+  border: 4px solid #fff;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffefb, #f8f0de);
+  box-shadow:
+    0 0 0 1px rgb(90 58 36 / 20%),
+    0 3px 0 rgb(90 58 36 / 18%),
+    0 8px 16px rgb(18 61 48 / 20%);
+}
+
+:global([data-skin='table']) .item:hover .card:not(.locked) {
+  box-shadow:
+    0 0 0 2px var(--stage),
+    0 3px 0 rgb(90 58 36 / 18%),
+    0 10px 18px rgb(18 61 48 / 24%);
+}
+
+/* หน้าต่างภาพของไพ่ */
+:global([data-skin='table']) .handle,
+:global([data-skin='table']) .handleStatic {
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--stage) 28%, #fff);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--stage) 55%, #fff);
+}
+
+:global([data-skin='table']) .handle:hover {
+  background: color-mix(in srgb, var(--stage) 42%, #fff);
+}
+
+:global([data-skin='table']) .label {
+  font-weight: 600;
+}
+
+/* ยกไพ่ขึ้นจากกระดานตอนลาก */
+:global([data-skin='table']) .lifted {
+  transform: scale(1.04) rotate(-2deg);
+  box-shadow:
+    0 0 0 2px var(--stage),
+    0 24px 38px rgb(0 0 0 / 32%);
+}
+
+/* ช่องว่างที่ไพ่จะถูกวาง */
+:global([data-skin='table']) .placeholder .card {
+  border: 2px dashed var(--slot-line);
+  background: rgb(255 255 255 / 35%);
+  box-shadow: none;
+}
+
+:global([data-skin='table']) .locked {
+  background: #f6efe0;
+  border-color: #f6efe0;
+  box-shadow: 0 0 0 1px rgb(90 58 36 / 14%);
+}
+
+/* ปุ่มลูกศรเป็นชิ้นกระดาษนูน กดแล้วยุบ */
+:global([data-skin='table']) .arrows {
+  gap: 3px;
+  padding-bottom: 3px;
+}
+
+:global([data-skin='table']) .arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1.5px var(--board-edge),
+    0 3px 0 var(--board-edge);
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast);
+}
+
+:global([data-skin='table']) .arrow:not(:disabled):hover {
+  background: #fff;
+  color: var(--stage-ink);
+  box-shadow:
+    0 0 0 1.5px var(--stage),
+    0 3px 0 var(--stage);
+}
+
+:global([data-skin='table']) .arrow:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 1.5px var(--board-edge);
+}
+
+:global([data-skin='table']) .arrow:disabled {
+  opacity: 0.35;
+  box-shadow: 0 0 0 1.5px var(--board-edge);
+}
+
+@media (max-width: 380px) {
+  :global([data-skin='table']) .arrows {
+    gap: 2px;
+  }
+
+  :global([data-skin='table']) .end {
+    margin-left: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-skin='table']) .lifted {
+    transform: none;
+  }
+}

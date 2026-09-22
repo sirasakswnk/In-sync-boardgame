@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   applyCommand,
   createRoomState,
@@ -11,7 +11,7 @@ import {
   type CommandBody,
   type RoomState,
 } from '@/lib/game';
-import type { useCommands } from '@/lib/client/useRoom';
+import type { CommandState, useCommands } from '@/lib/client/useRoom';
 import { GameHeader } from '@/features/room/GameHeader';
 import { JoinPanel } from '@/features/room/JoinPanel';
 import { RoomProblem } from '@/features/room/RoomStates';
@@ -106,13 +106,73 @@ const idleCommands: ReturnType<typeof useCommands> = {
   clearError: () => undefined,
 };
 
-export function DevPreview({ screen, longNames }: { screen: string; longNames: boolean }) {
-  if (screen === 'join') return <JoinPanel code="K7M4QX" onJoin={async () => undefined} />;
-  if (screen === 'full') return <RoomProblem code="ROOM_FULL" />;
-  return <PreviewRoom screen={screen} longNames={longNames} />;
+/**
+ * จำลองการส่งคำสั่งสำหรับ /dev/preview (?submit=fail|slow)
+ * กำลังส่ง 1.5 วินาที แล้ว fail = error แบบเดียวกับ useCommands จริง (ล้าง pending) · slow = ค้างสถานะส่ง
+ */
+function usePreviewCommands(mode: string | undefined): ReturnType<typeof useCommands> {
+  const [state, setState] = useState<CommandState>({ kind: 'idle' });
+  const pending = useRef(new Map<string, CommandBody>());
+  const sent = useRef(0);
+  const send = useCallback(
+    async (key: string, body: CommandBody) => {
+      if (pending.current.has(key)) return false;
+      pending.current.set(key, body);
+      sent.current += 1;
+      document.documentElement.dataset.previewSends = String(sent.current);
+      setState({ kind: 'sending', key });
+      if (mode === 'slow') return false;
+      await new Promise((r) => setTimeout(r, 1500));
+      pending.current.delete(key);
+      setState({ kind: 'error', key, code: 'NETWORK', message: 'ส่งไม่สำเร็จ (จำลอง) ลองอีกครั้ง' });
+      return false;
+    },
+    [mode],
+  );
+  const pendingFor = useCallback((key: string) => (pending.current.get(key) as never) ?? null, []);
+  const clearError = useCallback(() => setState({ kind: 'idle' }), []);
+  return { state, send, pendingFor, clearError };
 }
 
-function PreviewRoom({ screen, longNames }: { screen: string; longNames: boolean }) {
+/** `skin` = ธีมทดลอง (เช่น 'table' = โต๊ะบอร์ดเกม) ใส่เป็น data-skin บน shell */
+export function DevPreview({
+  screen,
+  longNames,
+  skin,
+  submit,
+}: {
+  screen: string;
+  longNames: boolean;
+  skin?: string;
+  submit?: string;
+}) {
+  if (screen === 'join') return <JoinPanel code="K7M4QX" onJoin={async () => undefined} />;
+  if (screen === 'full') return <RoomProblem code="ROOM_FULL" />;
+  return <PreviewRoom screen={screen} longNames={longNames} skin={skin} submit={submit} />;
+}
+
+const noSubscribe = () => () => undefined;
+
+function PreviewRoom(props: { screen: string; longNames: boolean; skin?: string; submit?: string }) {
+  // หน้าจริงเรนเดอร์หน้าห้องฝั่ง browser เท่านั้น (ต้องมีตัวตนก่อน) — preview ทำแบบเดียวกัน
+  // เพื่อให้ draft ใน sessionStorage อ่านได้ตั้งแต่ render แรกโดยไม่ hydration mismatch
+  const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
+  return mounted ? <PreviewRoomInner {...props} /> : null;
+}
+
+function PreviewRoomInner({
+  screen,
+  longNames,
+  skin,
+  submit,
+}: {
+  screen: string;
+  longNames: boolean;
+  skin?: string;
+  submit?: string;
+}) {
+  const simulated = usePreviewCommands(submit);
+  const cmds = submit ? simulated : idleCommands;
   const viewer = GUESSER_SCREENS.has(screen) ? B : A;
   const view = useMemo(
     () => projectRoomForPlayer(buildRoom(screen, longNames), viewer)!,
@@ -124,16 +184,24 @@ function PreviewRoom({ screen, longNames }: { screen: string; longNames: boolean
   const ranking =
     (view.phase === 'SELF_RANK' && role === 'setter') || (view.phase === 'GUESS_RANK' && role === 'guesser');
   const ids = view.game?.question.options.map((o) => o.id) ?? [];
+  // ธีมโต๊ะบอร์ดเกมใช้ช่องเรียงแบบไพ่ในมือ + แท่นอันดับ
+  const variant = skin === 'table' ? 'board' : 'list';
 
   return (
-    <div className={styles.shell} data-stage={stage}>
+    <div className={styles.shell} data-stage={stage} data-skin={skin}>
       <GameHeader view={view} partnerOnline onLeave={() => undefined} />
       <main className={styles.main}>
         {view.phase === 'LOBBY' && <LobbyView view={view} partnerOnline cmds={idleCommands} />}
-        {ranking && <RankStage view={view} uid={viewer} partnerOnline cmds={idleCommands} />}
+        {ranking && <RankStage view={view} uid={viewer} partnerOnline cmds={cmds} variant={variant} />}
         {view.phase === 'SELF_RANK' && role === 'guesser' && <WaitingTurn view={view} partnerOnline />}
         {view.phase === 'GUESS_RANK' && role === 'setter' && (
-          <WatchGuess view={view} partnerOnline demoOrder={[ids[1]!, ids[0]!, ids[3]!, ids[2]!, ids[4]!]} />
+          <WatchGuess
+            view={view}
+            partnerOnline
+            variant={variant}
+            // แบบแท่นแสดงสถานะกำลังวาง (ว่าง 2 ช่อง)
+            demoOrder={variant === 'board' ? [ids[1]!, '', ids[3]!, ids[2]!, ''] : [ids[1]!, ids[0]!, ids[3]!, ids[2]!, ids[4]!]}
+          />
         )}
         {view.phase === 'REVEAL' && <RevealView view={view} partnerOnline cmds={idleCommands} />}
         {view.phase === 'RESULTS' && <ResultsView view={view} partnerOnline cmds={idleCommands} />}

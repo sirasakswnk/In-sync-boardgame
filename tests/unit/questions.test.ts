@@ -8,6 +8,7 @@ import {
   loadQuestionBank,
   OPTIONS_PER_ROUND,
   pickQuestions,
+  promptFor,
   ROUNDS_PER_GAME,
 } from '@/lib/game';
 
@@ -93,5 +94,42 @@ describe('pickQuestions', () => {
     const a = pickQuestions(bank, DEFAULT_CATEGORIES, [], createRng('same'))!.map((q) => q.id);
     const b = pickQuestions(bank, DEFAULT_CATEGORIES, [], createRng('same'))!.map((q) => q.id);
     expect(a).toEqual(b);
+  });
+});
+
+describe('promptFor — คำถามระบุคนตอบ', () => {
+  const q17 = getQuestionBank().find((q) => q.id === 'q17')!;
+
+  it('ฝั่งจัดอันดับเป็น “คุณ” และไม่มีคำว่า “จะ”', () => {
+    expect(promptFor(q17, { you: true })).toBe('ถ้าคุณได้ตั๋วเที่ยวฟรี คุณอยากไปแบบไหนมากที่สุด?');
+  });
+
+  it('ฝั่งทายใส่ชื่อคู่หูและ “จะ”', () => {
+    expect(promptFor(q17, { name: 'มะปราง' })).toBe('ถ้ามะปรางได้ตั๋วเที่ยวฟรี มะปรางจะอยากไปแบบไหนมากที่สุด?');
+  });
+
+  it('ชื่อที่มีอักขระพิเศษของ replace ไม่ถูกตีความ', () => {
+    expect(promptFor(q17, { name: 'A$&B' })).toContain('ถ้าA$&Bได้ตั๋ว');
+  });
+
+  it('คำถามจากห้องเก่าที่ไม่มี personal ใช้ prompt เดิม', () => {
+    expect(promptFor({ prompt: 'เดิม?' }, { name: 'มะปราง' })).toBe('เดิม?');
+  });
+
+  it('คลังจริงทุกข้อมี personal และแทนค่าแล้วไม่เหลือ token', () => {
+    for (const q of getQuestionBank()) {
+      expect(q.personal, q.id).toBeTruthy();
+      for (const subject of [{ you: true } as const, { name: 'มะปราง' }]) {
+        const text = promptFor(q, subject);
+        expect(text, q.id).not.toMatch(/[{}]/);
+        expect(text, q.id).toContain('you' in subject ? 'คุณ' : 'มะปราง');
+      }
+    }
+  });
+
+  it('schema ปฏิเสธ personal ที่ไม่มี {who}', () => {
+    const bad = structuredClone(getQuestionBank().slice(0, 1));
+    bad[0]!.personal = 'ไม่มีคนในคำถาม';
+    expect(() => loadQuestionBank(bad)).toThrow();
   });
 });

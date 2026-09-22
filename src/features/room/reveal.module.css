@@ -427,3 +427,13 @@
     min-width: 56px;
   }
 }
+
+/* ธีมโต๊ะบอร์ดเกม: หัวข้อหน้าสรุปวางบนผ้าสักหลาดโดยตรง จึงใช้สีตัวอักษรสำหรับพื้นผ้า */
+:global([data-skin='table']) .resultsTitle,
+:global([data-skin='table']) .historyTitle {
+  color: var(--felt-ink);
+}
+
+:global([data-skin='table']) .resultsHero p {
+  color: var(--felt-muted);
+}

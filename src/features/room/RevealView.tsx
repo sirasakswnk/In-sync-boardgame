@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Button } from '@/components/Button';
-import { MAX_ROUND_SCORE, type PlayerView } from '@/lib/game';
+import { MAX_ROUND_SCORE, promptFor, type PlayerView } from '@/lib/game';
 import type { useCommands } from '@/lib/client/useRoom';
 import { RevealBreakdown } from './RevealBreakdown';
 import styles from './reveal.module.css';
@@ -51,7 +51,7 @@ export function RevealView({ view, partnerOnline, cmds }: Props) {
     <div className={roomStyles.stack}>
       <section className={roomStyles.questionCard}>
         <p className={roomStyles.eyebrow}>เฉลยรอบ {game.roundIndex + 1}</p>
-        <p className={roomStyles.prompt}>{reveal.question.prompt}</p>
+        <p className={roomStyles.prompt}>{promptFor(reveal.question, reveal.setter === 'you' ? { you: true } : { name: partnerName })}</p>
       </section>
 
       <section className={styles.revealCard}>

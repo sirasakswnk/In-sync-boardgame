@@ -67,13 +67,13 @@
   clip: rect(0 0 0 0);
 }
 
-/* ---------- header ---------- */
+/* ---------- header (กะทัดรัด: ชื่อเกม + เมนู / ผู้เล่นสองฝั่ง + รอบ) ---------- */
 
 .header {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 8px 16px 10px;
+  padding: 0 12px 6px;
   background: color-mix(in srgb, var(--cream) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
@@ -83,61 +83,35 @@
 .players {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: min(600px, 100%);
   margin: 0 auto;
 }
 
 .headerTop {
   justify-content: space-between;
-  font-size: 0.85rem;
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   min-height: 44px;
   color: var(--ink);
+  font-size: 0.85rem;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
 }
 
-.roomTag {
-  color: var(--ink-muted);
-  white-space: nowrap;
-}
-
-.roomTag strong {
-  color: var(--ink);
-  letter-spacing: 0.1em;
-}
-
-.leaveButton {
-  min-height: 44px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--coral-ink);
-  font-size: 0.85rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.leaveButton:hover {
-  background: var(--coral-soft);
-}
-
 .players {
   justify-content: space-between;
-  margin-top: 4px;
 }
 
 .playerChip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
   flex: 1;
 }
@@ -147,96 +121,142 @@
   text-align: right;
 }
 
-.playerMeta {
-  display: grid;
-  min-width: 0;
-  line-height: 1.25;
-}
-
 .playerName {
+  min-width: 0;
   overflow: hidden;
+  font-size: 0.88rem;
   font-weight: 600;
-  font-size: 0.95rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.playerName small {
-  color: var(--ink-muted);
-  font-weight: 400;
+/* วงรอบอวาตาร์บอกว่าฝั่งนี้คือคุณ */
+.isYou > [role='img'] {
+  box-shadow: 0 0 0 2px var(--stage);
 }
 
-.playerScore {
-  overflow: hidden;
-  color: var(--ink-muted);
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* จอแคบ: เหลือแค่ตัวเลข ให้ “คุณ · 13” ไม่ถูกตัด */
-@media (max-width: 400px) {
-  .scoreUnit {
-    display: none;
-  }
-}
-
-.progress {
+/* คะแนนเป็นเหรียญ */
+.scoreToken {
   display: grid;
-  justify-items: center;
-  gap: 4px;
+  place-items: center;
   flex: none;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--amber-soft);
+  color: var(--amber-ink);
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
-.progressText {
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.dots {
-  display: flex;
-  gap: 4px;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--line);
-  transition: background var(--dur-move), transform var(--dur-move) var(--ease-out);
-}
-
-.dotDone {
-  background: var(--teal);
-}
-
-.dotNow {
-  background: var(--stage);
-  transform: scale(1.35);
-}
-
-.roleChip {
-  padding: 0 8px;
+.roundTag {
+  flex: none;
+  padding: 2px 10px;
   border-radius: var(--radius-pill);
   background: var(--stage-soft);
   color: var(--stage-ink);
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .vs {
   flex: none;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 .waitingChip {
   flex: 1;
   color: var(--ink-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-align: right;
+}
+
+/* ---------- เมนู ⋯ ---------- */
+
+.menuWrap {
+  position: relative;
+}
+
+.menuButton {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.menuButton:hover,
+.menuButton[aria-expanded='true'] {
+  background: rgb(37 35 58 / 7%);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 2px;
+  width: min(280px, calc(100vw - 24px));
+  padding: 8px;
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: var(--shadow-lift);
+  color: var(--ink);
+  animation: rise 160ms var(--ease-out);
+}
+
+.menuSection {
+  display: grid;
+  gap: 2px;
+  padding: 6px 10px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.menuLabel {
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}
+
+.menuName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.menuCode {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font-weight: 600;
+  text-align: left;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: var(--stage-soft);
+}
+
+.menuDanger {
+  color: var(--coral-ink);
 }
 
 /* ---------- centered states ---------- */
@@ -633,9 +653,47 @@
   animation: rise 260ms var(--ease-out);
 }
 
-.stageTitle {
-  font-size: 1.05rem;
+/* ป้ายบทบาทในกล่องคำถาม: “จัดอันดับของคุณ” / “ทายใจ [ชื่อ]” */
+.roleLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  width: fit-content;
+  padding: 3px 12px 3px 4px;
+  border-radius: var(--radius-pill);
+  background: var(--stage-soft);
+  color: var(--stage-ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.roleIcon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--paper);
+  font-size: 1rem;
+}
+
+.roleText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* “จัดแล้ว 2/5 ใบ” / “ครบแล้ว!” เหนือปุ่มยืนยัน */
+.boardStatus {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
   font-weight: 600;
+  text-align: center;
+}
+
+.boardStatusReady {
   color: var(--stage-ink);
 }
 
@@ -644,12 +702,6 @@
   font-weight: 700;
   line-height: 1.35;
   text-wrap: balance;
-}
-
-.guessHead {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .boardCard {
@@ -882,7 +934,221 @@
   }
 }
 
-.youTag {
+/* ==========================================================================
+ * ธีมโต๊ะบอร์ดเกม — เมื่อ .shell มี data-skin="table" (หน้าห้องจริงใช้ธีมนี้)
+ * ========================================================================== */
+
+/* ---------- ขอบโต๊ะลายไม้ (header) ---------- */
+
+:global([data-skin='table']) .header {
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 3%) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 6%) 0 1px, transparent 1px 23px),
+    linear-gradient(180deg, var(--wood) 0%, var(--wood-deep) 100%);
+  backdrop-filter: none;
+  border-bottom: 3px solid #2e1c10;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 35%);
+}
+
+:global([data-skin=table]) .brand,
+:global([data-skin=table]) .playerName,
+:global([data-skin=table]) .menuButton {
+  color: var(--felt-ink);
+}
+
+:global([data-skin=table]) .waitingChip {
+  color: var(--wood-muted);
+}
+
+:global([data-skin='table']) .isYou > [role='img'] {
+  box-shadow: 0 0 0 2px var(--gold);
+}
+
+:global([data-skin=table]) .menuButton:hover,
+:global([data-skin=table]) .menuButton[aria-expanded=true] {
+  background: rgb(255 255 255 / 12%);
+}
+
+/* คะแนนเป็นเหรียญทอง */
+:global([data-skin=table]) .scoreToken {
+  background: radial-gradient(circle at 35% 30%, #ffe08a, var(--gold) 60%, #c79a32);
+  box-shadow: 0 2px 0 #7a5716;
+  color: var(--ink);
+}
+
+:global([data-skin=table]) .roundTag {
+  background: rgb(0 0 0 / 28%);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 40%);
+  color: var(--felt-ink);
+}
+
+/* ---------- ไพ่คำถาม ---------- */
+
+:global([data-skin='table']) .questionCard {
+  position: relative;
+  border: 6px solid #fff;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--stage-soft) 90%, transparent) 0 70px, transparent 71px),
+    linear-gradient(180deg, #fffdf7, var(--board));
+  box-shadow:
+    inset 0 5px 0 var(--stage),
+    inset 0 0 0 1.5px var(--board-edge),
+    0 2px 0 #e6d6b8,
+    0 16px 30px rgb(0 0 0 / 35%);
+  transform: rotate(-0.6deg);
+}
+
+/* สัญลักษณ์มุมไพ่ */
+:global([data-skin='table']) .questionCard::before {
+  content: '♥';
+  position: absolute;
+  top: 8px;
+  right: 12px;
   color: var(--stage-ink);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+:global([data-skin='table'][data-stage='guess']) .questionCard::before {
+  content: '♠';
+}
+
+/* ---------- กระดาน ---------- */
+
+:global([data-skin='table']) .boardCard {
+  padding: 18px 12px 16px;
+  border-radius: 22px;
+  background:
+    repeating-linear-gradient(45deg, rgb(194 171 128 / 7%) 0 2px, transparent 2px 10px),
+    color-mix(in srgb, var(--stage-soft) 30%, var(--board));
+  box-shadow:
+    inset 0 0 0 4px var(--board),
+    inset 0 0 0 6px var(--board-edge),
+    0 3px 0 #c9b28a,
+    0 22px 40px rgb(0 0 0 / 38%);
+}
+
+/* ---------- แถบปุ่มล่างและข้อความบนผ้า ---------- */
+
+:global([data-skin='table']) .actionBar {
+  background: linear-gradient(to top, var(--felt-deep) 65%, transparent);
+}
+
+@media (min-width: 640px) {
+  :global([data-skin='table']) .actionBar {
+    background: none;
+  }
+}
+
+:global([data-skin='table']) .actionBar .hint,
+:global([data-skin='table']) .footer,
+:global([data-skin='table']) .footer a {
+  color: var(--felt-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global([data-skin='table']) .questionCard {
+    transform: none;
+  }
+}
+
+/* ---------- หน้าดูสดแบบแท่น (variant="board") ---------- */
+
+.watchBoardTitle {
+  margin-bottom: 10px;
+  color: var(--stage-ink);
+  font-weight: 700;
+  text-align: center;
+}
+
+.mineStrip {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 2px dashed var(--slot-line, var(--line));
+}
+
+.mineTitle {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
   font-weight: 600;
+  text-align: center;
+}
+
+.mineList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mineList li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px 3px 4px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--board-edge, var(--line));
+  font-size: 0.8rem;
+}
+
+.mineRank {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--stage);
+  color: var(--stage-on);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* หน้าวางไพ่แบบแท่น: การ์ดคำถามกะทัดรัด ให้แท่น + ไพ่ในมือพอดีจอมือถือ (คำแนะนำอยู่ในถาดล่างแล้ว) */
+.compactStage {
+  gap: 10px;
+}
+
+.compactStage .questionCard {
+  gap: 6px;
+  padding: 12px 16px;
+}
+
+.compactStage .questionCard .muted {
+  display: none;
+}
+
+.compactStage .prompt {
+  font-size: clamp(1.1rem, 4.8vw, 1.4rem);
+}
+
+.compactStage .boardCard {
+  padding-top: 12px;
+}
+
+.compactStage .questionCard .watching {
+  display: none;
+}
+
+/* “👀 คู่หูกำลังดูอยู่” ในถาดไม้ */
+.trayWatching {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* ในถาดไม้: สถานะใช้เฉดที่อ่านได้บนไม้ ครบแล้วเป็นสีทอง */
+.compactStage .boardStatusReady {
+  color: var(--gold);
+}
+
+/* lobby: ที่นั่งว่างเดิมโปร่งใส — บนผ้าสักหลาดให้เป็นช่องบนกระดานแทน */
+:global([data-skin='table']) .seatEmpty {
+  background: color-mix(in srgb, var(--board) 85%, transparent);
+  box-shadow: inset 0 0 0 2px var(--slot-line);
 }

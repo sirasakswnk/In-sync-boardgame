@@ -1,6 +1,7 @@
 'use client';
 
 import { isValidRanking } from '@/lib/game';
+import { slotsFromStrings, slotsToStrings } from '@/lib/ui/board';
 
 /**
  * Draft ที่ยังไม่ส่ง เก็บใน sessionStorage แยกตาม ผู้เล่น/เกม/รอบ/ช่วง (plan.md §11)
@@ -22,6 +23,20 @@ export function loadDraft(key: string, optionIds: readonly string[]): string[] |
   } catch {
     return null;
   }
+}
+
+/** draft ของแท่นอันดับ (RankBoard) — วางไม่ครบได้ ช่องว่างเก็บเป็น "" */
+export function loadSlots(key: string, optionIds: readonly string[]): (string | null)[] | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? slotsFromStrings(JSON.parse(raw), optionIds) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveSlots(key: string, slots: readonly (string | null)[]): void {
+  saveDraft(key, slotsToStrings(slots));
 }
 
 export function saveDraft(key: string, order: readonly string[]): void {

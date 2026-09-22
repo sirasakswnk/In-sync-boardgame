@@ -93,6 +93,12 @@ export const questionSchema = z
     version: z.number().int().min(1),
     category: categorySchema,
     prompt: z.string().trim().min(1),
+    /** คำถามแบบระบุคนตอบ: {who} = คุณ/ชื่อคู่หู, {will} = "" หรือ "จะ" — ดู promptFor() */
+    personal: z
+      .string()
+      .trim()
+      .refine((t) => t.includes('{who}'), 'personal ต้องมี {who}')
+      .optional(),
     topLabel: z.string().trim().min(1),
     bottomLabel: z.string().trim().min(1),
     options: z

@@ -164,6 +164,10 @@ describe.skipIf(!firebaseReady())('เกมเต็ม 6 รอบ: สอง�
       expect(await carol.canRead(`live/${roomId}`)).toBe(false);
       expect(await guesser.canWrite(livePath, { ...liveEntry(gv, I), extra: 1 })).toBe(false);
       expect(await guesser.canWrite(livePath, { ...liveEntry(gv, I), order: pick(gv, I).slice(0, 4) })).toBe(false);
+      // แบบแท่นอันดับส่งทีละช่อง: ช่องที่ยังว่างเป็น "" ต้องเขียนได้ด้วย rules เดิม
+      const partial = pick(gv, R).map((id, i) => (i % 2 ? '' : id));
+      expect(await guesser.canWrite(livePath, { ...liveEntry(gv, I), order: partial })).toBe(true);
+      expect(await setter.readValue(livePath)).toMatchObject({ order: partial });
       if (previousKey) expect(await guesser.canWrite(livePath, liveEntry(gv, I, previousKey))).toBe(false);
       previousKey = gv.game!.liveKey;
 

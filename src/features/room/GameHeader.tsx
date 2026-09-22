@@ -1,14 +1,19 @@
 import Link from 'next/link';
 import { Avatar } from '@/components/Avatar';
 import { ROUNDS_PER_GAME, type PlayerView } from '@/lib/game';
+import { RoomMenu } from './RoomMenu';
 import styles from './room.module.css';
 
 type Props = { view: PlayerView; partnerOnline: boolean; onLeave: () => void };
 
+/**
+ * ส่วนหัวกะทัดรัด: แถวแรกชื่อเกม + เมนู ⋯ (รหัสห้อง, คัดลอกลิงก์, ออกจากห้อง)
+ * แถวสองผู้เล่นสองฝั่งกับ “รอบ n/6” ตรงกลาง — บทบาทของรอบแสดงในกล่องคำถามแทน
+ */
 export function GameHeader({ view, partnerOnline, onLeave }: Props) {
   const game = view.game;
-  const showScores = Boolean(game);
-  const revealedRounds = game ? game.history.length : 0;
+  const center =
+    !game ? null : view.phase === 'RESULTS' ? 'จบเกม' : `รอบ ${game.roundIndex + 1}/${ROUNDS_PER_GAME}`;
 
   return (
     <header className={styles.header}>
@@ -16,12 +21,7 @@ export function GameHeader({ view, partnerOnline, onLeave }: Props) {
         <Link href="/" className={styles.brand}>
           <span aria-hidden="true">💞</span> ใจตรงกันแค่ไหน
         </Link>
-        <span className={styles.roomTag}>
-          ห้อง <strong>{view.code}</strong>
-        </span>
-        <button type="button" className={styles.leaveButton} onClick={onLeave}>
-          ออกจากห้อง
-        </button>
+        <RoomMenu view={view} onLeave={onLeave} />
       </div>
 
       <div className={styles.players}>
@@ -30,31 +30,11 @@ export function GameHeader({ view, partnerOnline, onLeave }: Props) {
           isYou
           avatarId={view.you.avatarId}
           online
-          score={showScores ? game!.totals.you : null}
+          score={game ? game.totals.you : null}
         />
 
-        {game ? (
-          <div className={styles.progress} aria-label={`รอบ ${game.roundIndex + 1} จาก ${ROUNDS_PER_GAME}`}>
-            <span className={styles.progressText}>
-              {view.phase === 'RESULTS' ? 'จบเกม' : `รอบ ${game.roundIndex + 1}/${ROUNDS_PER_GAME}`}
-            </span>
-            <span className={styles.dots} aria-hidden="true">
-              {Array.from({ length: ROUNDS_PER_GAME }, (_, i) => (
-                <span
-                  key={i}
-                  className={`${styles.dot} ${i < revealedRounds ? styles.dotDone : ''} ${
-                    i === game.roundIndex && view.phase !== 'RESULTS' ? styles.dotNow : ''
-                  }`}
-                />
-              ))}
-            </span>
-            {view.phase !== 'RESULTS' && (
-              // สั้นไว้ไม่ให้เบียดชื่อ/คะแนนบนจอ 360px — หัวการ์ดคำถามบอกบทบาทเต็มอยู่แล้ว
-              <span className={styles.roleChip} aria-label={game.role === 'setter' ? 'ตาคุณวาง' : 'ตาคุณทาย'}>
-                {game.role === 'setter' ? '✍️ คุณวาง' : '🔮 คุณทาย'}
-              </span>
-            )}
-          </div>
+        {center ? (
+          <span className={styles.roundTag}>{center}</span>
         ) : (
           <span className={styles.vs} aria-hidden="true">
             💞
@@ -66,7 +46,7 @@ export function GameHeader({ view, partnerOnline, onLeave }: Props) {
             name={view.partner.displayName}
             avatarId={view.partner.avatarId}
             online={partnerOnline}
-            score={showScores ? game!.totals.partner : null}
+            score={game ? game.totals.partner : null}
             alignEnd
           />
         ) : (
@@ -92,25 +72,20 @@ function PlayerChip({
   score: number | null;
   alignEnd?: boolean;
 }) {
+  const status = online ? 'ออนไลน์' : 'ออฟไลน์';
   return (
-    <div className={`${styles.playerChip} ${alignEnd ? styles.alignEnd : ''}`}>
-      <Avatar id={avatarId} size="md" online={online} label={`${name} ${online ? 'ออนไลน์' : 'ออฟไลน์'}`} />
-      <span className={styles.playerMeta}>
-        <span className={styles.playerName}>{name}</span>
-        <span className={styles.playerScore}>
-          {isYou && <strong className={styles.youTag}>คุณ · </strong>}
-          {score !== null ? (
-            <>
-              {score}
-              <span className={styles.scoreUnit}> คะแนน</span>
-            </>
-          ) : online ? (
-            'ออนไลน์'
-          ) : (
-            'ออฟไลน์'
-          )}
-        </span>
+    <div className={`${styles.playerChip} ${alignEnd ? styles.alignEnd : ''} ${isYou ? styles.isYou : ''}`}>
+      <Avatar id={avatarId} size="sm" online={online} label={`${name}${isYou ? ' (คุณ)' : ''} ${status}`} />
+      {/* ชื่อยาวตัดด้วย … แต่ title/aria-label ยังมีชื่อเต็ม และเมนู ⋯ แสดงชื่อเต็มด้วย */}
+      {/* ฝั่งคุณอยู่ซ้ายเสมอและมีวงทองรอบอวาตาร์ — ไม่ใส่คำว่า “คุณ” หน้าชื่อเพื่อเหลือที่ให้ชื่อบนจอแคบ */}
+      <span className={styles.playerName} title={isYou ? `${name} (คุณ)` : name}>
+        {name}
       </span>
+      {score !== null && (
+        <span className={styles.scoreToken} aria-label={`${score} คะแนน`}>
+          {score}
+        </span>
+      )}
     </div>
   );
 }

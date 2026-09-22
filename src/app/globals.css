@@ -25,6 +25,20 @@
   --amber-soft: #fff1d6;
   --amber-ink: #8a5a00;
 
+  /* ธีมโต๊ะบอร์ดเกม (data-skin="table") — ประกาศไว้ที่นี่ให้ contrast test อ่านได้ */
+  --felt: #1e5a47;
+  --felt-deep: #123d30;
+  --felt-ink: #f4ecd8;
+  --felt-muted: #c9d8cc;
+  --wood: #5a3a24;
+  --wood-deep: #3f2817;
+  --wood-muted: #dcc9a8;
+  --wood-accent: #ffb4a8;
+  --board: #fbf3e2;
+  --board-edge: #d8c39c;
+  --slot-line: #c2ab80;
+  --gold: #f2c14e;
+
   --shadow-card: 0 1px 2px rgb(37 35 58 / 6%), 0 4px 14px rgb(37 35 58 / 7%);
   --shadow-lift: 0 10px 28px rgb(37 35 58 / 18%), 0 2px 6px rgb(37 35 58 / 10%);
   --radius-card: 18px;
@@ -57,6 +71,21 @@
   --stage-soft: var(--teal-soft);
   --stage-ink: var(--teal-ink);
   --stage-on: var(--paper);
+}
+
+/*
+ * ธีมโต๊ะบอร์ดเกม — หน้าห้องใช้ธีมนี้ (RoomScreen ใส่ data-skin="table") · ดูแบบเดิมได้ที่ /dev/preview?skin=classic
+ * ทุก rule ของธีมอยู่ใต้ [data-skin='table'] ไม่มี attribute นี้หน้าตาเหมือนเดิมทุกอย่าง
+ */
+[data-skin='table'] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 90% 70% at 50% 35%, #2b735a 0%, var(--felt) 50%, var(--felt-deep) 100%);
+}
+
+/* ใต้โต๊ะ (overscroll/ขอบล่างมือถือ) เป็นผ้าสีเข้มด้วย ไม่โผล่พื้นครีม */
+body:has([data-skin='table']) {
+  background: var(--felt-deep);
 }
 
 *,

@@ -46,3 +46,20 @@ export function pickQuestions(
   const reused = shuffle(pool.filter((q) => avoid.has(q.id)), rand);
   return [...fresh, ...reused].slice(0, count);
 }
+
+export type PromptSubject = { you: true } | { name: string };
+
+/**
+ * ข้อความคำถามจากมุมของคนที่ถูกถาม
+ * - { you: true }  → “ถ้าคุณได้ตั๋วเที่ยวฟรี คุณอยากไป…”
+ * - { name: 'มะปราง' } → “ถ้ามะปรางได้ตั๋วเที่ยวฟรี มะปรางจะอยากไป…”
+ * คำถามที่ไม่มี personal (เช่น snapshot จากห้องเก่า) ใช้ prompt เดิม
+ */
+export function promptFor(question: Pick<Question, 'prompt' | 'personal'>, subject: PromptSubject): string {
+  const template = question.personal;
+  if (!template) return question.prompt;
+  const who = 'you' in subject ? 'คุณ' : subject.name;
+  const will = 'you' in subject ? '' : 'จะ';
+  // ใช้ฟังก์ชันแทนที่ ชื่อที่มี $ จะได้ไม่ถูกตีความเป็น pattern
+  return template.replace(/\{who\}/g, () => who).replace(/\{will\}/g, () => will);
+}

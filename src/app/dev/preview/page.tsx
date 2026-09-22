@@ -8,5 +8,13 @@ import { DevPreview } from '@/features/dev/DevPreview';
 export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   if (process.env.NODE_ENV === 'production') notFound();
   const params = await searchParams;
-  return <DevPreview screen={params.screen ?? 'lobby'} longNames={params.long === '1'} />;
+  return (
+    <DevPreview
+      screen={params.screen ?? 'lobby'}
+      longNames={params.long === '1'}
+      // ค่าเริ่มต้นเหมือนเว็บจริง (ธีมโต๊ะ) · ?skin=classic เพื่อดูแบบเดิมเทียบ
+      skin={params.skin === 'classic' ? undefined : 'table'}
+      submit={params.submit === 'fail' || params.submit === 'slow' ? params.submit : undefined}
+    />
+  );
 }

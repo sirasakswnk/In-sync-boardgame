@@ -64,7 +64,8 @@ export function RoomScreen({ code }: { code: string }) {
     (view.phase === 'GUESS_RANK' && view.game?.role === 'guesser');
 
   return (
-    <div className={styles.shell} data-stage={stage}>
+    // ธีมโต๊ะบอร์ดเกม: ผ้าสักหลาด ขอบไม้ ไพ่ขอบขาว (ดู globals.css [data-skin='table'])
+    <div className={styles.shell} data-stage={stage} data-skin="table">
       <GameHeader view={view} partnerOnline={room.partnerOnline} onLeave={() => setConfirmLeave(true)} />
 
       <main className={styles.main}>
@@ -96,13 +97,13 @@ export function RoomScreen({ code }: { code: string }) {
 
         {view.phase === 'LOBBY' && <LobbyView view={view} partnerOnline={room.partnerOnline} cmds={cmds} />}
         {myTurnToRank && (
-          <RankStage key={`${view.game!.id}:${view.game!.roundIndex}:${view.phase}`} view={view} uid={uid} partnerOnline={room.partnerOnline} cmds={cmds} />
+          <RankStage key={`${view.game!.id}:${view.game!.roundIndex}:${view.phase}`} view={view} uid={uid} partnerOnline={room.partnerOnline} cmds={cmds} variant="board" />
         )}
         {view.phase === 'SELF_RANK' && view.game!.role === 'guesser' && (
           <WaitingTurn view={view} partnerOnline={room.partnerOnline} />
         )}
         {view.phase === 'GUESS_RANK' && view.game!.role === 'setter' && (
-          <WatchGuess key={view.game!.liveKey} view={view} partnerOnline={room.partnerOnline} />
+          <WatchGuess key={view.game!.liveKey} view={view} partnerOnline={room.partnerOnline} variant="board" />
         )}
         {view.phase === 'REVEAL' && (
           <RevealView key={`${view.game!.id}:${view.game!.roundIndex}`} view={view} partnerOnline={room.partnerOnline} cmds={cmds} />

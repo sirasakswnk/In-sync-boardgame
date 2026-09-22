@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Avatar } from '@/components/Avatar';
 import { Banner } from '@/components/Banner';
 import { Button } from '@/components/Button';
@@ -14,6 +14,7 @@ import {
   type PlayerView,
   type PublicMember,
 } from '@/lib/game';
+import { useCopied, useInviteUrl } from '@/lib/client/clipboard';
 import type { useCommands } from '@/lib/client/useRoom';
 import { uuidv4 } from '@/lib/client/uuid';
 import styles from './room.module.css';
@@ -24,9 +25,8 @@ const bank = getQuestionBank();
 
 const noSubscribe = () => () => undefined;
 
-
 export function LobbyView({ view, partnerOnline, cmds }: Props) {
-  const [copied, setCopied] = useState<'link' | 'code' | null>(null);
+  const { copied, copy } = useCopied<'link' | 'code'>();
   const partner = view.partner;
   const selected = view.settings.categories;
   const questionCount = countQuestionsIn(bank, selected);
@@ -34,28 +34,8 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
   const sending = cmds.state.kind === 'sending';
 
   // ค่าที่มีเฉพาะในเบราว์เซอร์: ใช้ server snapshot ตอน hydrate เพื่อไม่ให้ HTML ไม่ตรงกัน
-  const origin = useSyncExternalStore(noSubscribe, () => window.location.origin, () => '');
   const canShare = useSyncExternalStore(noSubscribe, () => 'share' in navigator, () => false);
-  const inviteUrl = `${origin}/room/${view.code}`;
-
-  async function copy(text: string, what: 'link' | 'code') {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      // clipboard ใช้ไม่ได้นอก secure context (เช่นเล่นผ่าน LAN ด้วย http) — ใช้วิธีเก่าแทน
-      const el = document.createElement('textarea');
-      el.value = text;
-      el.setAttribute('readonly', '');
-      el.style.position = 'fixed';
-      el.style.opacity = '0';
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      el.remove();
-    }
-    setCopied(what);
-    window.setTimeout(() => setCopied(null), 2000);
-  }
+  const inviteUrl = useInviteUrl(view.code);
 
   function toggle(category: Category) {
     if (!view.isHost) return;

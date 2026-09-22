@@ -43,6 +43,23 @@ const TEXT_PAIRS: Array<[string, string]> = [
   ['teal-ink', 'teal-soft'],
   ['paper', 'teal'],
   ['amber-ink', 'amber-soft'],
+  // ธีมโต๊ะบอร์ดเกม (data-skin="table")
+  ['felt-ink', 'felt'], // ข้อความบนผ้าสักหลาด
+  ['felt-ink', 'felt-deep'],
+  ['felt-muted', 'felt'], // คำใบ้ใต้ปุ่ม, footer
+  ['felt-muted', 'felt-deep'],
+  ['felt-ink', 'wood'], // ชื่อผู้เล่นบนขอบโต๊ะ
+  ['felt-ink', 'wood-deep'],
+  ['wood-muted', 'wood'],
+  ['wood-muted', 'wood-deep'],
+  ['wood-accent', 'wood'], // ปุ่มออกจากห้อง
+  ['wood-accent', 'wood-deep'],
+  ['gold', 'wood'], // ป้าย “คุณ”
+  ['ink', 'gold'], // ตัวเลขบนเหรียญคะแนน
+  ['ink', 'board'], // ไพ่และกระดาน
+  ['ink-muted', 'board'],
+  ['coral-ink', 'board'],
+  ['lavender-ink', 'board'],
 ];
 
 describe('design tokens contrast (WCAG AA ≥ 4.5:1 สำหรับข้อความปกติ)', () => {

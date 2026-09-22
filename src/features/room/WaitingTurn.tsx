@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar } from '@/components/Avatar';
-import type { PlayerView } from '@/lib/game';
+import { promptFor, type PlayerView } from '@/lib/game';
 import styles from './room.module.css';
 
 type Props = { view: PlayerView; partnerOnline: boolean };
@@ -19,7 +19,7 @@ export function WaitingTurn({ view, partnerOnline }: Props) {
     <div className={styles.stack}>
       <section className={styles.questionCard}>
         <p className={styles.eyebrow}>รอบ {game.roundIndex + 1} · ตาคุณทาย</p>
-        <p className={styles.prompt}>{game.question.prompt}</p>
+        <p className={styles.prompt}>{promptFor(game.question, { name: partnerName })}</p>
         <p className={styles.muted}>คิดไว้ก่อนเลยว่า {partnerName} จะเรียงยังไง</p>
       </section>
 
