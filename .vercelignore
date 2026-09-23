@@ -5,9 +5,18 @@
 .env
 .env.local
 .env.*.local
+.env.production
 *serviceAccount*.json
+service-account*.json
+*credentials*.json
 firebase-adminsdk-*.json
 .firebase/
+.runtimeconfig.json
+*.pem
+*.key
+*.p12
+*.p8
+.npmrc
 
 # สร้างใหม่ตอน build บน Vercel
 node_modules/
@@ -18,5 +27,20 @@ coverage/
 
 # ไฟล์เฉพาะเครื่อง
 .claude/
+.vscode/
+.idea/
 .vercel
 *.log
+.turbo/
+.swc/
+.eslintcache
+
+# ไม่ได้ใช้ตอน build บน Vercel
+tests/
+scripts/
+plan.md
+AGENTS.md
+CLAUDE.md
+/scratch/
+/screenshots/
+*.mockup.html

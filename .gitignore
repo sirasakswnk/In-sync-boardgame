@@ -9,15 +9,28 @@ coverage/
 .env
 .env.local
 .env.*.local
+.env.production
 *serviceAccount*.json
+service-account*.json
+*credentials*.json
 firebase-adminsdk-*.json
 .firebase/
+.runtimeconfig.json
+# กุญแจและใบรับรองทุกชนิด
+*.pem
+*.key
+*.p12
+*.p8
+# .npmrc มักมี token ของ registry
+.npmrc
 
 # เครื่องมือ/ระบบ
 *.log
 npm-debug.log*
 .DS_Store
 Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
 .vercel
 *.tsbuildinfo
 next-env.d.ts
@@ -25,5 +38,19 @@ next-env.d.ts
 # Firebase emulator logs
 *-debug.log
 
+# แคชของเครื่องมือ (สร้างใหม่ได้เสมอ)
+.turbo/
+.swc/
+.eslintcache
+*.tgz
+
 # การตั้งค่าเฉพาะเครื่อง
 .claude/
+.vscode/
+.idea/
+*.swp
+
+# ไฟล์ระหว่างทำงาน: ภาพหน้าจอที่ถ่ายไว้ดู, ไฟล์ต้นแบบ HTML ที่ยังไม่ได้พอร์ต
+/scratch/
+/screenshots/
+*.mockup.html
