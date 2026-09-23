@@ -70,7 +70,14 @@ export function RoomMenu({ view, onLeave }: Props) {
           </div>
           <div className={styles.menuSection}>
             <span className={styles.menuLabel}>รหัสห้อง</span>
-            <span className={styles.menuCode}>{view.code}</span>
+            <span className={styles.menuCode}>
+              <span className="visually-hidden">{view.code.split('').join(' ')}</span>
+              {view.code.split('').map((ch, i) => (
+                <span key={i} className={styles.menuTile} aria-hidden="true">
+                  {ch}
+                </span>
+              ))}
+            </span>
           </div>
           <button ref={first} type="button" role="menuitem" className={styles.menuItem} onClick={() => copy(view.code, 'code')}>
             {copied === 'code' ? 'คัดลอกรหัสแล้ว ✓' : '📋 คัดลอกรหัสห้อง'}

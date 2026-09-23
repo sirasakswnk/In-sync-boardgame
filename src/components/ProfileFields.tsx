@@ -12,15 +12,18 @@ type Props = {
   onChange: (next: ProfileDraft) => void;
   error?: string | null;
   disabled?: boolean;
+  /** 'table' = หน้าตาหน้าแรก (โต๊ะของเราสองคน) */
+  look?: 'table';
 };
 
-export function ProfileFields({ value, onChange, error, disabled }: Props) {
+export function ProfileFields({ value, onChange, error, disabled, look }: Props) {
+  const table = look === 'table';
   const nameId = useId();
   const errId = useId();
   const count = visibleLength(value.displayName.trim());
 
   return (
-    <div className={styles.fields}>
+    <div className={`${styles.fields} ${table ? styles.table : ''}`}>
       <div className={styles.nameRow}>
         <label htmlFor={nameId} className={styles.label}>
           ชื่อเล่นของคุณ
@@ -34,7 +37,7 @@ export function ProfileFields({ value, onChange, error, disabled }: Props) {
         className={styles.input}
         value={value.displayName}
         onChange={(e) => onChange({ ...value, displayName: e.target.value })}
-        placeholder="เช่น มะปราง"
+        placeholder={table ? 'วันนี้ให้เรียกคุณว่าอะไร?' : 'เช่น มะปราง'}
         autoComplete="nickname"
         enterKeyHint="done"
         maxLength={60}
@@ -49,7 +52,7 @@ export function ProfileFields({ value, onChange, error, disabled }: Props) {
       )}
 
       <fieldset className={styles.avatars} disabled={disabled}>
-        <legend className={styles.label}>เลือกอวาตาร์</legend>
+        <legend className={styles.label}>{table ? 'เลือกอวาตาร์ของคุณ' : 'เลือกอวาตาร์'}</legend>
         <div className={styles.grid}>
           {AVATAR_IDS.map((id) => {
             const a = AVATARS[id];

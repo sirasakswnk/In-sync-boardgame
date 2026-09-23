@@ -2,7 +2,7 @@
   "name": "heart-sync",
   "version": "0.1.0",
   "private": true,
-  "description": "ใจตรงกันแค่ไหน — เว็บเกมจัดอันดับสำหรับผู้เล่นสองคน",
+  "description": "IN SYNC — เว็บเกมจัดอันดับสำหรับผู้เล่นสองคน",
   "engines": {
     "node": ">=20.9.0"
   },

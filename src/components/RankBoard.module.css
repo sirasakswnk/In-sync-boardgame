@@ -197,8 +197,8 @@
 
 .small .art {
   height: auto;
-  min-height: 36px;
-  font-size: 24px;
+  min-height: 48px;
+  font-size: 32px;
 }
 
 /* ชื่อยาวได้ถึง 3 บรรทัด ไพ่สูงขึ้นเองแทนการตัดชื่อ */
@@ -207,13 +207,13 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   line-height: 1.2;
 }
 
 .lifted {
-  width: 104px;
-  height: 104px;
+  width: 118px;
+  height: 132px;
   transform: rotate(-3deg) scale(1.04);
   box-shadow:
     0 0 0 2px var(--stage),
@@ -261,14 +261,18 @@
   text-align: center;
 }
 
-/* พัดไพ่แถวเดียว ซ้อนกันเล็กน้อยเหมือนถือไพ่ในมือ */
+/* พัดไพ่แถวเดียว ซ้อนกันเหมือนถือไพ่ในมือ — ไพ่กว้างเท่าที่ถาดมีพอดี */
 .hand {
+  /* ระยะที่ไพ่ซ้อนทับกัน และความสูงไพ่ ใช้ร่วมกันทั้งพัด */
+  --overlap: 16px;
+  --card-h: 120px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   width: 100%;
-  min-height: 98px;
-  padding: 10px 8px 0;
+  min-height: calc(var(--card-h) + 12px);
+  /* เผื่อขอบข้างให้ไพ่ใบริมที่เอียงอยู่ไม่ล้นถาด */
+  padding: 10px 10px 0;
   border-radius: 16px;
   transition: background-color var(--dur-fast);
 }
@@ -284,12 +288,13 @@
   outline-offset: -2px;
 }
 
+/* ไพ่ 5 ใบกินพื้นที่รวมเท่าความกว้างของมือพอดี: แต่ละใบกินจริง (width − overlap) */
 .handCard {
   position: relative;
   flex: none;
-  width: 68px;
-  min-height: 92px;
-  margin: 0 -5px;
+  width: calc(20% + var(--overlap));
+  min-height: var(--card-h);
+  margin: 0 calc(var(--overlap) / -2);
   padding: 0;
   border: 0;
   background: transparent;
@@ -301,7 +306,7 @@
 }
 
 .handCard > .card {
-  min-height: 92px;
+  min-height: var(--card-h);
 }
 
 .handCard:hover {
@@ -352,30 +357,18 @@
 }
 
 @media (max-width: 380px) {
-  .handCard {
-    width: 62px;
-    min-height: 86px;
-    margin: 0 -4px;
-  }
-
-  .handCard > .card {
-    min-height: 86px;
+  .hand {
+    --overlap: 14px;
+    --card-h: 110px;
   }
 }
 
 @media (min-width: 640px) {
-  .handCard {
-    width: 84px;
-    min-height: 112px;
-    margin: 0 -2px;
-  }
-
-  .handCard > .card {
-    min-height: 112px;
-  }
-
   .hand {
-    min-height: 136px;
+    --overlap: 10px;
+    --card-h: 136px;
+    max-width: 460px;
+    margin: 0 auto;
   }
 
   .podium {

@@ -1,0 +1,438 @@
+/* หน้า Lobby ธีมโต๊ะบอร์ดเกม — ไพ่เชิญ, ที่นั่งรอบโต๊ะ, กองคำถาม, ถาดไม้ */
+
+/* ---------- ไพ่เชิญ ---------- */
+
+.invite {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px 14px 14px;
+  border: 6px solid #fff;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--stage-soft) 90%, transparent) 0 64px, transparent 65px),
+    linear-gradient(180deg, #fffdf7, var(--board));
+  box-shadow:
+    inset 0 5px 0 var(--stage),
+    inset 0 0 0 1.5px var(--board-edge),
+    0 2px 0 #e6d6b8,
+    0 16px 30px rgb(0 0 0 / 35%);
+  text-align: center;
+  transform: rotate(-0.5deg);
+}
+
+/* มุมไพ่ */
+.invite::before {
+  content: '♦';
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  color: var(--stage-ink);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.inviteTitle {
+  color: var(--stage-ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* รหัสห้องเป็นตัวต่อไม้ทีละตัว */
+.codeTiles {
+  display: flex;
+  gap: 5px;
+  min-height: 56px;
+  padding: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  width: clamp(36px, 11vw, 46px);
+  height: clamp(44px, 13vw, 54px);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f6e3bf 0%, #e7c992 100%);
+  box-shadow:
+    inset 0 -3px 0 rgb(90 58 36 / 22%),
+    0 2px 0 #b89262,
+    0 4px 8px rgb(0 0 0 / 18%);
+  color: var(--wood-deep);
+  font-size: clamp(1.3rem, 6vw, 1.7rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.codeTiles:hover .tile {
+  transform: translateY(-2px);
+}
+
+.codeTiles:active .tile {
+  transform: translateY(1px);
+}
+
+.inviteHint {
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+
+.inviteActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ปุ่มชิ้นกระดาษนูน กดแล้วยุบ */
+.paperButton {
+  min-height: 44px;
+  padding: 6px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1.5px var(--board-edge),
+    0 3px 0 var(--board-edge);
+  color: var(--ink);
+  font-weight: 600;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast);
+}
+
+.paperButton:hover {
+  box-shadow:
+    0 0 0 1.5px var(--stage),
+    0 3px 0 var(--stage);
+}
+
+.paperButton:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 1.5px var(--board-edge);
+}
+
+/* ---------- ที่นั่งรอบโต๊ะ ---------- */
+
+.table {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.vs {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe08a, var(--gold) 60%, #c79a32);
+  box-shadow: 0 3px 0 #7a5716, 0 6px 12px rgb(0 0 0 / 30%);
+  font-size: 1.2rem;
+}
+
+/* ไพ่ผู้เล่นแนวตั้ง */
+.seat {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 176px;
+  padding: 14px 8px 12px;
+  border: 5px solid #fff;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffefb, #f8f0de);
+  box-shadow:
+    0 0 0 1px rgb(90 58 36 / 20%),
+    0 3px 0 rgb(90 58 36 / 18%),
+    0 12px 22px rgb(0 0 0 / 30%);
+  text-align: center;
+  transition: box-shadow var(--dur-move), transform var(--dur-move) var(--ease-out);
+}
+
+.table > .seat:first-child {
+  transform: rotate(-1.5deg);
+}
+
+.table > .seat:last-child {
+  transform: rotate(1.5deg);
+}
+
+.seatReady {
+  box-shadow:
+    0 0 0 2.5px var(--gold),
+    0 3px 0 rgb(90 58 36 / 18%),
+    0 12px 22px rgb(0 0 0 / 30%);
+}
+
+.crown {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  font-size: 1.4rem;
+  line-height: 1;
+  transform: translateX(-50%) rotate(-8deg);
+  filter: drop-shadow(0 2px 1px rgb(0 0 0 / 30%));
+}
+
+.seatName {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seatSub {
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+
+/* ตราประทับความพร้อม */
+.stampReady,
+.stampWaiting {
+  margin-top: 4px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.stampReady {
+  border: 2.5px solid var(--amber-ink);
+  background: var(--amber-soft);
+  color: var(--amber-ink);
+  transform: rotate(-6deg);
+  animation: stamp 260ms var(--ease-out);
+}
+
+.stampWaiting {
+  border: 2px dashed var(--slot-line);
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+@keyframes stamp {
+  from {
+    transform: rotate(-6deg) scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* ที่นั่งว่าง = หลังไพ่ */
+.seatBack {
+  align-content: center;
+  background:
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 22%) 0 6px, transparent 6px 12px),
+    repeating-linear-gradient(-45deg, rgb(255 255 255 / 22%) 0 6px, transparent 6px 12px),
+    var(--stage);
+}
+
+.backMark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 18%);
+  color: var(--stage-ink);
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.seatBack .seatName,
+.backHint {
+  padding: 1px 8px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 88%);
+  color: var(--ink);
+}
+
+.backHint {
+  font-size: 0.75rem;
+}
+
+/* ---------- กองคำถาม (แผ่นกระดาน) ---------- */
+
+.decksBoard {
+  display: grid;
+  gap: 10px;
+  padding: 14px 12px 16px;
+  border-radius: 22px;
+  background:
+    repeating-linear-gradient(45deg, rgb(194 171 128 / 7%) 0 2px, transparent 2px 10px),
+    var(--board);
+  box-shadow:
+    inset 0 0 0 4px var(--board),
+    inset 0 0 0 6px var(--board-edge),
+    0 3px 0 #c9b28a,
+    0 22px 40px rgb(0 0 0 / 38%);
+}
+
+.decksHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+  padding: 0 4px;
+}
+
+.decksHead h2 {
+  font-size: 1.05rem;
+}
+
+.decksHead span,
+.boardNote {
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+}
+
+.boardNote {
+  padding: 0 4px;
+}
+
+.decks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 10px;
+  padding: 4px 4px 6px;
+}
+
+@media (min-width: 480px) {
+  .decks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* กองไพ่: ไพ่ใบบนสุด + เงาไพ่ซ้อนอีกสองใบ */
+.deck {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 3px solid #fff;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffefb, #f8f0de);
+  box-shadow:
+    0 0 0 1px rgb(90 58 36 / 18%),
+    3px 3px 0 -1px #f3e7cf,
+    3px 3px 0 0 rgb(90 58 36 / 18%),
+    6px 6px 0 -1px #efe0c2,
+    6px 6px 0 0 rgb(90 58 36 / 16%);
+  color: var(--ink);
+  text-align: left;
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast), opacity var(--dur-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.deck:not(.deckOn) {
+  opacity: 0.72;
+}
+
+.deckOn {
+  border-color: #fff;
+  box-shadow:
+    0 0 0 2px var(--stage),
+    3px 3px 0 -1px #f3e7cf,
+    3px 3px 0 0 rgb(90 58 36 / 18%),
+    6px 6px 0 -1px #efe0c2,
+    6px 6px 0 0 rgb(90 58 36 / 16%);
+  transform: translate(-2px, -3px);
+}
+
+.deck:not(:disabled):hover {
+  opacity: 1;
+}
+
+.deck:disabled {
+  cursor: default;
+}
+
+.deckIcon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--stage) 22%, #fff);
+  font-size: 1.15rem;
+}
+
+.deckText {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+/* ให้เบราว์เซอร์ตัดคำภาษาไทยตามพจนานุกรม (ไม่ใช้ anywhere ที่ตัดกลางคำ) */
+.deckName {
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow-wrap: break-word;
+  line-break: strict;
+}
+
+.deckText small {
+  color: var(--ink-muted);
+  font-size: 0.72rem;
+}
+
+.deckCheck {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--stage);
+  color: var(--stage-on);
+  font-size: 0.75rem;
+  font-weight: 800;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 20%);
+}
+
+/* ---------- ถาดไม้: ปุ่มพร้อม / เริ่มเกม ---------- */
+
+.tray {
+  display: grid;
+  gap: 8px;
+  margin: 6px -12px -16px;
+  padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+  border-top: 3px solid #2e1c10;
+  border-radius: 16px 16px 22px 22px;
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 3%) 0 2px, transparent 2px 9px),
+    linear-gradient(180deg, var(--wood) 0%, var(--wood-deep) 100%);
+  box-shadow: 0 -6px 14px rgb(0 0 0 / 22%);
+}
+
+.trayHint {
+  color: var(--wood-muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .invite,
+  .table > .seat:first-child,
+  .table > .seat:last-child,
+  .deckOn,
+  .stampReady {
+    transform: none;
+  }
+}

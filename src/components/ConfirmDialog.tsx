@@ -9,14 +9,26 @@ type Props = {
   title: string;
   body: string;
   confirmLabel: string;
-  cancelLabel?: string;
+  /** null = ไม่มีปุ่มยกเลิก (ใช้เป็นหน้าต่างแจ้งข้อมูล) */
+  cancelLabel?: string | null;
+  confirmVariant?: 'danger' | 'primary';
   busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
 
 /** ใช้ <dialog> ของเบราว์เซอร์: จัดการ focus trap และปุ่ม Escape ให้ */
-export function ConfirmDialog({ open, title, body, confirmLabel, cancelLabel = 'ยกเลิก', busy, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({
+  open,
+  title,
+  body,
+  confirmLabel,
+  cancelLabel = 'ยกเลิก',
+  confirmVariant = 'danger',
+  busy,
+  onConfirm,
+  onCancel,
+}: Props) {
   const ref = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -41,10 +53,12 @@ export function ConfirmDialog({ open, title, body, confirmLabel, cancelLabel = '
       </h2>
       <p className={styles.body}>{body}</p>
       <div className={styles.actions}>
-        <Button variant="secondary" onClick={onCancel} autoFocus>
-          {cancelLabel}
-        </Button>
-        <Button variant="danger" onClick={onConfirm} loading={busy}>
+        {cancelLabel !== null && (
+          <Button variant="secondary" onClick={onCancel} autoFocus>
+            {cancelLabel}
+          </Button>
+        )}
+        <Button variant={confirmVariant} onClick={onConfirm} loading={busy} autoFocus={cancelLabel === null}>
           {confirmLabel}
         </Button>
       </div>

@@ -1,0 +1,564 @@
+/* หน้ารอคู่หูจัดไพ่ — พอร์ตจากต้นแบบ in-sync-waiting.html
+   สีของต้นแบบใช้เฉพาะในหน้านี้ ตัวอักษรเล็กสุดขยายเป็น 11px ให้อ่านได้บนมือถือ */
+
+.page {
+  width: min(400px, 100%);
+  margin: 0 auto;
+  padding: 2px 0 6px;
+  color: #393b32;
+}
+
+:where(.page) :where(h1, h2, p, ul) {
+  margin: 0;
+}
+
+/* ---------- การ์ดคำถาม ---------- */
+
+.question {
+  position: relative;
+  padding: 13px 15px 16px;
+  border: 5px solid #fffaf0;
+  border-radius: 13px;
+  background: linear-gradient(140deg, #fffdf4, #f5e9d1);
+  box-shadow:
+    0 3px 0 #cbb68f,
+    0 9px 20px #12362c40;
+  transform: rotate(-0.65deg);
+}
+
+.question::after {
+  content: '♠';
+  position: absolute;
+  top: 10px;
+  right: 13px;
+  color: #aa91bd;
+  font-size: 23px;
+}
+
+.role {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 25px;
+  color: #81658e;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.role::before {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ab8dba;
+}
+
+.question h1 {
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.55;
+  letter-spacing: -0.5px;
+}
+
+.questionBottom {
+  margin-top: 7px;
+  color: #91816c;
+  font-size: 11px;
+}
+
+/* ---------- ฝั่งคู่หู ---------- */
+
+.stage {
+  position: relative;
+  padding-top: 27px;
+  text-align: center;
+}
+
+.seatLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #cbd8c6;
+  font-size: 11px;
+}
+
+.seatLabel::before,
+.seatLabel::after {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: #bcd1b24d;
+}
+
+.portraitWrap {
+  position: relative;
+  z-index: 3;
+  width: 72px;
+  height: 72px;
+  margin: 11px auto 0;
+}
+
+.portrait {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border: 4px solid #f6efd7;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px #c5b582,
+    0 5px 0 #183c31,
+    0 9px 13px #153d3266;
+  font-size: 44px;
+  line-height: 1;
+}
+
+.connectionDot {
+  position: absolute;
+  right: 0;
+  bottom: 3px;
+  width: 16px;
+  height: 16px;
+  border: 3px solid #2a5948;
+  border-radius: 50%;
+  background: #b6d59a;
+  transition: background 0.2s;
+}
+
+/* ฟองความคิดของคู่หู */
+.thinking {
+  position: absolute;
+  top: 0;
+  right: -43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 40px;
+  height: 28px;
+  border-radius: 11px 11px 11px 3px;
+  background: #f5ebd4;
+  box-shadow: 0 3px 0 #173d3030;
+}
+
+.thinking i {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #9a8667;
+  animation: think 2s ease-in-out infinite;
+}
+
+.thinking i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.partnerTitle {
+  margin-top: 11px;
+  color: #e8dfc5;
+  font-size: 12px;
+}
+
+/* ขนาดและระยะกางของหลังไพ่มาจากตัวแปรชุดนี้ชุดเดียว */
+.tableArt {
+  --cw: 58px;
+  --ch: 84px;
+  --spread: 54px;
+  --spread-far: 106px;
+  position: relative;
+  height: 139px;
+  margin: 4px -6px 0;
+  isolation: isolate;
+}
+
+.tableRing {
+  position: absolute;
+  inset: 34px 0 3px;
+  border: 1px solid #b1c49a26;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #153d304a, transparent 70%);
+  transform: rotate(-3deg);
+}
+
+.tableRing::after {
+  content: '';
+  position: absolute;
+  inset: 8px 13px;
+  border: 1px dashed #c5cfa01c;
+  border-radius: 50%;
+}
+
+.cards {
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  z-index: 2;
+  width: 0;
+  height: calc(var(--ch) + 18px);
+}
+
+.card {
+  --x: 0px;
+  --y: 0px;
+  --r: 0deg;
+  position: absolute;
+  top: 0;
+  left: calc(var(--cw) / -2);
+  display: grid;
+  place-items: center;
+  width: var(--cw);
+  height: var(--ch);
+  border: 3px solid #fbf4dc;
+  border-radius: 8px;
+  background: #c8b9d1;
+  box-shadow:
+    0 3px 0 #9b8a96,
+    0 9px 12px #112f3066;
+  transform: translate(var(--x), var(--y)) rotate(var(--r));
+  animation: adjust 6s ease-in-out infinite var(--delay);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid #fbf2d9c4;
+  border-radius: 3px;
+  background: repeating-linear-gradient(45deg, transparent 0 5px, #fff9e614 5px 6px);
+}
+
+.cardMark {
+  position: relative;
+  width: 88%;
+  height: auto;
+  aspect-ratio: 1;
+  color: #fcf3da;
+  pointer-events: none;
+}
+
+.card:nth-child(1) {
+  --x: calc(var(--spread-far) * -1);
+  --y: 14px;
+  --r: -17deg;
+  --delay: 0s;
+  z-index: 1;
+  background: #d89b8b;
+}
+
+.card:nth-child(2) {
+  --x: calc(var(--spread) * -1);
+  --y: 3px;
+  --r: -8deg;
+  --delay: 1.1s;
+  z-index: 2;
+}
+
+.card:nth-child(3) {
+  --delay: 2.2s;
+  z-index: 3;
+  background: #d99c8c;
+}
+
+.card:nth-child(4) {
+  --x: var(--spread);
+  --y: 3px;
+  --r: 8deg;
+  --delay: 3.3s;
+  z-index: 2;
+}
+
+.card:nth-child(5) {
+  --x: var(--spread-far);
+  --y: 14px;
+  --r: 17deg;
+  --delay: 4.4s;
+  z-index: 1;
+  background: #d99c8c;
+}
+
+.tinyStar {
+  position: absolute;
+  top: 17px;
+  left: 22px;
+  color: #d8c996;
+  font-size: 17px;
+  opacity: 0.8;
+  transform: rotate(-15deg);
+}
+
+.tinyStarRight {
+  top: 72px;
+  right: 18px;
+  left: auto;
+  font-size: 12px;
+}
+
+@keyframes adjust {
+  0%,
+  12%,
+  32%,
+  100% {
+    transform: translate(var(--x), var(--y)) rotate(var(--r));
+  }
+  21% {
+    transform: translate(var(--x), calc(var(--y) - 8px)) rotate(calc(var(--r) + 3deg));
+  }
+}
+
+@keyframes think {
+  0%,
+  60%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+/* ---------- สถานะและลำดับการเล่น ---------- */
+
+.status {
+  min-height: 71px;
+  text-align: center;
+}
+
+.status h2 {
+  color: #fff2d6;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.status p {
+  margin-top: 4px;
+  color: #c4d4c3;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.turnPath {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0 25px;
+  color: #acc3b0;
+  font-size: 11px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.step b {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border: 1px solid #abc0a957;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.current {
+  color: #f1ddb1;
+}
+
+.current b {
+  border-color: #e1c690;
+  background: #e1c690;
+  color: #3a5140;
+}
+
+.line {
+  width: 22px;
+  height: 1px;
+  background: #b6c8a544;
+}
+
+/* ---------- ใบโน้ตตัวเลือก ---------- */
+
+.note {
+  position: relative;
+  margin: 0 3px;
+  padding: 21px 15px 15px;
+  border-radius: 3px 4px 10px 3px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 25px, #a9926c0b 25px 26px),
+    #f8edd6;
+  box-shadow:
+    0 3px 0 #cdb894,
+    0 8px 16px #163b3040;
+  transform: rotate(0.75deg);
+}
+
+.tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 64px;
+  height: 17px;
+  background: repeating-linear-gradient(90deg, #d3bd97cd 0 6px, #e7d5b6cd 6px 7px);
+  clip-path: polygon(0 0, 100% 0, 97% 30%, 100% 50%, 97% 75%, 100% 100%, 0 100%, 3% 70%, 0 50%, 3% 25%);
+  transform: translateX(-50%) rotate(-5deg);
+}
+
+.noteHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.noteHead svg {
+  display: block;
+  flex: none;
+  width: 17px;
+  height: 17px;
+  color: #8a7757;
+}
+
+.note h2 {
+  color: #645c45;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.note p {
+  margin: 6px 0 12px;
+  color: #8b7c61;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0;
+  list-style: none;
+}
+
+.options li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 33px;
+  padding: 3px 9px 3px 6px;
+  border: 1px solid #dfcfaf;
+  border-radius: 7px;
+  background: #fffaf0;
+  box-shadow: 0 2px 0 #e4d5b8;
+  font-size: 12px;
+}
+
+.options li span {
+  font-size: 17px;
+}
+
+.noteFoot {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px dashed #d6c3a2;
+  color: #98876a;
+  font-size: 11px;
+}
+
+.noteFoot svg {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 22px;
+  color: #a9c2ae;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.bottom svg {
+  display: block;
+  flex: none;
+  width: 13px;
+  height: 13px;
+}
+
+/* ---------- คู่หูออฟไลน์ ---------- */
+
+.page[data-state='offline'] .card,
+.page[data-state='offline'] .thinking i {
+  animation-play-state: paused;
+}
+
+.page[data-state='offline'] .thinking {
+  opacity: 0;
+}
+
+.page[data-state='offline'] .connectionDot {
+  background: #bdafa0;
+}
+
+.page[data-state='offline'] .portrait {
+  filter: saturate(0.45);
+}
+
+.page[data-state='offline'] .status h2 {
+  color: #eed8b5;
+}
+
+@media (max-width: 360px) {
+  .question h1 {
+    font-size: 20px;
+  }
+
+  .tableArt {
+    --cw: 52px;
+    --ch: 78px;
+    --spread: 48px;
+    --spread-far: 94px;
+  }
+
+  .status h2 {
+    font-size: 16px;
+  }
+
+  .note {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .thinking i {
+    animation: none;
+  }
+
+  .question,
+  .note {
+    transform: none;
+  }
+}

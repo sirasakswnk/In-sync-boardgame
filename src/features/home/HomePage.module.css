@@ -1,240 +1,606 @@
-.home {
-  display: grid;
-  /* minmax(0, …) กันลูกที่กว้างเกินดันให้ทั้งหน้ากว้างกว่าจอ */
-  grid-template-columns: minmax(0, 1fr);
-  gap: 28px;
-  width: min(1040px, 100%);
-  margin: 0 auto;
-  padding: 32px 16px 48px;
+/*
+ * หน้าแรก “โต๊ะของเราสองคน” — พอร์ตจากดีไซน์ตัวอย่าง heart-sync-table.html
+ * ใช้พาเลตของดีไซน์นั้นเฉพาะในไฟล์นี้ (ข้อความเล็กขยายเป็นอย่างน้อย 11px ให้อ่านบนมือถือได้)
+ */
+
+.page {
+  --hs-felt: #234d40;
+  --hs-cream: #fff9ec;
+  --hs-ink: #292c3d;
+  --hs-coral: #eb8b83;
+  min-height: 100dvh;
+  background: #18392f;
+  color: var(--hs-cream);
 }
 
-@media (min-width: 880px) {
+.home {
+  position: relative;
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: auto;
+  padding: 0 18px 26px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 16%, #386653 0, transparent 48%),
+    repeating-linear-gradient(92deg, #ffffff02 0 1px, transparent 1px 4px),
+    var(--hs-felt);
+}
+
+@media (min-width: 600px) {
+  .page {
+    padding: 25px 0;
+  }
+
   .home {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    align-items: center;
-    gap: 56px;
-    min-height: 100dvh;
-    padding-block: 48px;
+    min-height: calc(100dvh - 50px);
+    padding: 0 25px 25px;
+    border: 1px solid #647e6050;
+    border-radius: 28px;
+    box-shadow: 0 22px 80px #0b271c66;
   }
 }
 
-/* ---------- hero ---------- */
+/* ---------- topline ---------- */
 
-.hero {
-  display: grid;
-  gap: 16px;
-  justify-items: start;
+.topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 0 4px;
+  color: #dfd6b9;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.4px;
 }
 
-.logo {
+.tinyHeart {
+  margin-right: 8px;
+  color: var(--hs-coral);
+  font-size: 16px;
+  letter-spacing: -5px;
+}
+
+.helpButton {
   position: relative;
-  width: 132px;
-  height: 96px;
-  margin-bottom: 4px;
-}
-
-.miniCard {
-  position: absolute;
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 74px;
-  border-radius: 14px;
-  background: var(--paper);
-  box-shadow: var(--shadow-card);
-  font-size: 28px;
-  animation: float 5s ease-in-out infinite;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #eee8d7;
+  font-size: 15px;
+  letter-spacing: 0;
 }
 
-.cardA {
-  left: 0;
-  top: 14px;
-  background: var(--coral-soft);
-  transform: rotate(-12deg);
-}
-
-.cardB {
-  left: 36px;
-  top: 0;
-  z-index: 1;
-  animation-delay: -1.6s;
-}
-
-.cardC {
-  left: 72px;
-  top: 14px;
-  background: var(--lavender-soft);
-  transform: rotate(12deg);
-  animation-delay: -3.2s;
-}
-
-.heart {
+/* วงกลมเล็กตามดีไซน์ ส่วนพื้นที่กดยังเป็น 44px */
+.helpButton::before {
+  content: '';
   position: absolute;
-  right: -10px;
-  bottom: -8px;
-  z-index: 2;
-  font-size: 30px;
-  animation: beat 2.4s ease-in-out infinite;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #b8c3a54a;
+  border-radius: 50%;
 }
 
-@keyframes float {
-  50% {
-    translate: 0 -5px;
-  }
+.helpButton:hover::before {
+  background: rgb(255 255 255 / 8%);
 }
 
-@keyframes beat {
-  0%,
-  100% {
-    scale: 1;
-  }
-  15% {
-    scale: 1.15;
-  }
-  30% {
-    scale: 1;
-  }
+/* ---------- brand ---------- */
+
+.brand {
+  position: relative;
+  padding-top: 10px;
+  text-align: center;
 }
 
-.title {
-  font-size: clamp(2.1rem, 8vw, 3.4rem);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+.eyebrow {
+  margin: 0 0 7px;
+  color: #e1d4b0;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.brand h1 {
+  margin: 0;
+  color: var(--hs-cream);
+  font-size: clamp(40px, 12vw, 54px);
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: 1px;
+  text-shadow: 0 3px 0 #193d32;
+}
+
+.accent {
+  color: #f3a59a;
+}
+
+.miniHeart {
+  display: inline-block;
+  margin-left: 4px;
+  color: #eea093;
 }
 
 .tagline {
-  max-width: 34ch;
-  color: var(--ink-muted);
-  font-size: 1.1rem;
+  margin: 10px 0 0;
+  color: #f2e9d5;
+  font-size: 13px;
 }
 
-.steps {
-  display: grid;
-  gap: 10px;
-  width: 100%;
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
+.star {
+  position: absolute;
+  top: 14px;
+  right: 7px;
+  color: #d6be80;
+  font-size: 23px;
+  transform: rotate(13deg);
 }
 
-.steps li {
+/* ---------- scene: โต๊ะ ---------- */
+
+.scene {
+  position: relative;
+  height: 276px;
+  margin: 5px -6px 0;
+}
+
+.tableEdge {
+  position: absolute;
+  top: 74px;
+  right: 6px;
+  left: 6px;
+  height: 186px;
+  padding: 7px;
+  border-radius: 48% 48% 30% 30% / 35% 35% 25% 25%;
+  background: linear-gradient(120deg, #805b41, #b28b61 48%, #73543d);
+  box-shadow: 0 10px 0 #17382f, 0 19px 25px #102d2855;
+  transform: rotate(-2deg);
+}
+
+.tableFelt {
+  position: relative;
+  height: 100%;
+  border: 1px solid #cabc8147;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at 50% 35%, #46715b, #2b5746);
+  box-shadow: inset 0 3px 9px #173b3166;
+}
+
+.tableFelt::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 1px dashed #e5d4a02c;
+  border-radius: inherit;
+}
+
+.player {
+  position: absolute;
+  top: 27px;
+  z-index: 9;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: rgb(255 255 255 / 70%);
-  box-shadow: inset 0 0 0 1.5px var(--line);
+  gap: 6px;
 }
 
-.steps strong {
-  display: block;
-  font-weight: 600;
+.playerLeft {
+  left: 5px;
 }
 
-.steps small {
-  display: block;
-  color: var(--ink-muted);
-  font-size: 0.9rem;
+.playerRight {
+  top: 40px;
+  right: 4px;
+  flex-direction: row-reverse;
 }
 
-.stepNum {
+.avatarDisc {
   display: grid;
   place-items: center;
-  flex: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background: var(--coral);
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border: 3px solid #fff3d9;
+  border-radius: 50%;
+  background: #f4dfc3;
+  box-shadow: 0 4px 0 #122d2855;
+  font-size: 28px;
+}
+
+.playerRight .avatarDisc {
+  background: #e8ddee;
+}
+
+.speech {
+  position: relative;
+  padding: 8px 10px;
+  border-radius: 12px 12px 12px 3px;
+  background: var(--hs-cream);
+  box-shadow: 0 3px 0 #142f2540;
+  color: var(--hs-ink);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: rotate(-5deg);
+}
+
+.speech::before {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  left: -5px;
+  border-top: 6px solid transparent;
+  border-right: 7px solid var(--hs-cream);
+  border-bottom: 3px solid transparent;
+}
+
+.playerRight .speech {
+  padding: 8px;
+  border-radius: 12px 12px 3px 12px;
+  transform: rotate(5deg);
+}
+
+.playerRight .speech::before {
+  right: -5px;
+  left: auto;
+  border-right: 0;
+  border-left: 7px solid var(--hs-cream);
+}
+
+/* อยู่สูงกว่าตัวอย่างเล็กน้อย ไพ่ที่ถูกเลือก (ยกขึ้น 12px) จะไม่บังข้อความคำถาม */
+.questionSlip {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  z-index: 2;
+  padding: 8px 15px 11px;
+  border: 1px solid #e1d1aa;
+  border-radius: 5px;
+  background: #fffaef;
+  box-shadow: 0 4px 0 #143c2f40;
+  color: var(--hs-ink);
+  text-align: center;
+  white-space: nowrap;
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+.questionSlip small {
+  display: block;
+  color: #8a5c4b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.questionSlip b {
+  font-size: 13px;
+}
+
+.detailSpark {
+  position: absolute;
+  top: 133px;
+  left: 17px;
+  color: #eed595;
+  font-size: 21px;
+}
+
+/* พัดไพ่ท่องเที่ยว */
+.hand {
+  position: absolute;
+  inset: 132px 20px auto;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 115px;
+}
+
+.travelCard {
+  --angle: 0deg;
+  --y: 0px;
+  position: relative;
+  flex-shrink: 0;
+  width: 67px;
+  height: 98px;
+  margin: 0 -2px;
+  padding: 5px 4px 4px;
+  border: 1px solid #ded4bc;
+  border-radius: 9px;
+  background: #fffaf0;
+  box-shadow: 0 4px 0 #ddd0af, 0 7px 8px #132f3c40;
+  color: var(--hs-ink);
+  transform: translateY(var(--y)) rotate(var(--angle));
+  transform-origin: bottom center;
+  transition: transform 0.25s, box-shadow 0.25s;
+  animation: deal 0.65s both;
+  animation-delay: calc(var(--i, 0) * 0.06s);
+}
+
+.travelCard:nth-child(1) {
+  --angle: -17deg;
+  --y: 13px;
+}
+
+.travelCard:nth-child(2) {
+  --angle: -8deg;
+  --y: 3px;
+}
+
+.travelCard:nth-child(4) {
+  --angle: 9deg;
+  --y: 4px;
+}
+
+.travelCard:nth-child(5) {
+  --angle: 18deg;
+  --y: 15px;
+}
+
+.travelCard[aria-pressed='true'] {
+  z-index: 7;
+  box-shadow: 0 4px 0 #c59f5e, 0 0 0 2px #ecd49a, 0 12px 15px #132f3c55;
+  transform: translateY(-12px) rotate(-2deg);
+}
+
+.art {
+  display: block;
+  height: 61px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--artbg);
+}
+
+.art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.travelCard b {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rankCoin {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  display: none;
+  width: 27px;
+  height: 27px;
+  border: 2px solid #fff0bf;
+  border-radius: 50%;
+  background: #efd190;
+  box-shadow: 0 2px 0 #ad8148;
+  color: #76552e;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 23px;
+}
+
+.travelCard[aria-pressed='true'] .rankCoin {
+  display: block;
+}
+
+.tinyToken {
+  position: absolute;
+  right: 38px;
+  bottom: 14px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border: 2px solid #f5d4ba;
+  border-radius: 50%;
+  background: #c8897b;
+  box-shadow: 0 3px 0 #8b5c4d;
+  color: #fff2d7;
+  font-size: 11px;
+  transform: rotate(16deg);
+}
+
+@keyframes deal {
+  from {
+    opacity: 0;
+    translate: 0 15px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.sceneCaption {
+  margin: 0 0 12px;
+  color: #ded5bc;
+  font-size: 11px;
+  text-align: center;
+}
+
+/* ---------- ขั้นตอน 1 → 2 → 3 ---------- */
+
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+  color: #fff5dd;
+  font-size: 12px;
+}
+
+.num {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: #f3d6c6;
+  color: #764d43;
+  font-size: 11px;
   font-weight: 700;
 }
 
-.stepGuess {
-  background: var(--lavender);
+.stepGuess .num {
+  background: #ded5f5;
+  color: #5e4d84;
 }
 
-.stepReveal {
-  background: var(--teal);
-  color: var(--paper);
+.stepReveal .num {
+  background: #c9dfcf;
+  color: #325c47;
 }
 
-/* ---------- panel ---------- */
+.arrow {
+  color: #bfc7af;
+  font-size: 11px;
+}
 
-.panel {
+/* ---------- setup: แผ่นกระดานเตรียมตัว ---------- */
+
+.setup {
+  position: relative;
   display: grid;
-  gap: 16px;
-  padding: 22px 18px;
-  border-radius: 26px;
-  background: var(--paper);
-  box-shadow: var(--shadow-lift);
+  gap: 14px;
+  padding: 24px 21px 22px;
+  border: 1px solid #decaa3;
+  border-radius: 23px;
+  outline: 3px solid #cab38b;
+  outline-offset: -7px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 12px, #a98b4220 12px 13px),
+    #fff8e8;
+  box-shadow: 0 8px 0 #153b30, 0 13px 25px #0d2d2533;
+  color: var(--hs-ink);
 }
 
-@media (min-width: 480px) {
-  .panel {
-    padding: 28px;
-  }
+.setupTitle {
+  margin: 0;
+  color: #95574e;
+  font-size: 20px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.setupSub {
+  margin: -10px 0 4px;
+  color: #7a6d5f;
+  font-size: 12px;
+  text-align: center;
+}
+
+.primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 4px;
+  border: 1px solid #d5766f;
+  border-top: 2px solid #f9beb1;
+  border-radius: 13px;
+  background: #e98c82;
+  box-shadow: 0 4px 0 #b56a60;
+  color: #452e35;
+  font-size: 15px;
+  font-weight: 800;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.primary:not(:disabled):active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #b56a60;
+}
+
+.primary:disabled {
+  opacity: 0.55;
+}
+
+.plus {
+  font-size: 22px;
+  font-weight: 400;
 }
 
 .divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: var(--ink-muted);
-  font-size: 0.9rem;
+  gap: 9px;
+  margin: 8px 0 0;
+  color: #7a6d5b;
+  font-size: 12px;
 }
 
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
-  height: 1.5px;
-  background: var(--line);
+  border-top: 1px dashed #c9b58d;
 }
 
-.joinForm {
+.joinRow {
   display: flex;
   gap: 10px;
 }
 
-.codeInput {
-  flex: 1;
-  /* input มีความกว้างตั้งต้น ~20 ตัวอักษร ต้องตั้ง width เองไม่งั้นดันฟอร์มจนล้นจอ 360px */
-  width: 0;
+.joinInput {
+  width: 100%;
   min-width: 0;
-  min-height: 50px;
-  padding: 10px 16px;
-  border: 2px solid var(--line);
-  border-radius: 14px;
-  background: var(--cream);
-  font-size: 1.2rem;
+  height: 46px;
+  padding: 0 13px;
+  border: 1px solid #decaa4;
+  border-radius: 12px;
+  background: #f0e0bf;
+  color: #524a3e;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.codeInput::placeholder {
-  letter-spacing: normal;
+.joinInput::placeholder {
+  color: #7a6650;
   font-weight: 400;
-  font-size: 1rem;
-  color: var(--ink-muted);
+  letter-spacing: normal;
+  text-transform: none;
 }
 
-.codeInput:focus-visible {
-  outline: none;
-  border-color: var(--lavender-ink);
-  box-shadow: 0 0 0 4px var(--lavender-soft);
+.joinButton {
+  flex: 0 0 82px;
+  min-height: 46px;
+  border: 1px solid #e0d6c3;
+  border-radius: 12px;
+  background: #fffef9;
+  box-shadow: 0 2px 0 #d8c6a7;
+  color: var(--hs-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.joinButton:disabled {
+  opacity: 0.55;
 }
 
 .fieldError {
   margin-top: -6px;
-  color: var(--coral-ink);
-  font-size: 0.9rem;
+  color: #b83b3e;
+  font-size: 12px;
 }
 
-.note {
-  color: var(--ink-muted);
-  font-size: 0.85rem;
+.footnote {
+  margin: 4px 0 0;
+  color: #74694f;
+  font-size: 11px;
+  line-height: 1.9;
   text-align: center;
 }
 
@@ -242,8 +608,156 @@
   letter-spacing: 0.12em;
 }
 
+/* ---------- ห้องที่ค้างอยู่: ใบโน้ตบนโต๊ะ ---------- */
+
+.activeSlip {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 14px 14px 16px;
+  border: 1px solid #e1d1aa;
+  border-radius: 8px;
+  background: #fffaef;
+  box-shadow: 0 4px 0 #e3d3ad, 0 8px 14px rgb(20 60 47 / 18%);
+  text-align: center;
+  transform: rotate(-1.2deg);
+}
+
+.activeTitle {
+  margin: 0;
+  color: #95574e;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.activeTiles {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+}
+
+.activeTile {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 38px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #f6e3bf 0%, #e7c992 100%);
+  box-shadow:
+    inset 0 -3px 0 rgb(90 58 36 / 22%),
+    0 2px 0 #b89262;
+  color: #3f2817;
+  font-size: 18px;
+  font-weight: 800;
+}
+
 .activeActions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.activeBack,
+.activeLeave {
+  flex: 1 1 130px;
+  min-height: 44px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.activeBack {
+  border: 1px solid #d5766f;
+  border-top: 2px solid #f9beb1;
+  background: #e98c82;
+  box-shadow: 0 3px 0 #b56a60;
+  color: #452e35;
+}
+
+.activeLeave {
+  border: 1px solid #e0d6c3;
+  background: #fffef9;
+  box-shadow: 0 2px 0 #d8c6a7;
+  color: #8a3f3b;
+}
+
+.activeBack:not(:disabled):active,
+.activeLeave:not(:disabled):active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.activeBack:disabled,
+.activeLeave:disabled {
+  opacity: 0.55;
+}
+
+.footerBrand {
+  margin: 22px 0 0;
+  color: #cbd2bb;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.footerBrand span {
+  color: #f1aaa0;
+  letter-spacing: 0;
+}
+
+@media (max-width: 370px) {
+  .home {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .brand h1 {
+    font-size: 40px;
+  }
+
+  .tagline {
+    font-size: 12px;
+  }
+
+  .speech {
+    padding: 8px;
+  }
+
+  .avatarDisc {
+    width: 40px;
+    height: 40px;
+    font-size: 25px;
+  }
+
+  .travelCard {
+    width: 58px;
+    height: 94px;
+  }
+
+  .art {
+    height: 58px;
+  }
+
+  .setup {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .steps {
+    gap: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activeSlip {
+    transform: none;
+  }
+
+  .travelCard {
+    animation: none;
+    transition: none;
+  }
 }

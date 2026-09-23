@@ -1,5 +1,5 @@
 /*
- * Design tokens — ใจตรงกันแค่ไหน
+ * Design tokens — IN SYNC
  * สีสดใช้เป็น "พื้น" คู่กับตัวอักษรเข้ม ส่วนข้อความสีใช้เฉด -ink ที่ผ่าน WCAG AA
  * (ตรวจโดย tests/unit/contrast.test.ts — เปลี่ยนสีแล้วต้องให้เทสต์ผ่าน)
  */

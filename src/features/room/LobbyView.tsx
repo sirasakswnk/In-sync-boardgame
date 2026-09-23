@@ -17,11 +17,22 @@ import {
 import { useCopied, useInviteUrl } from '@/lib/client/clipboard';
 import type { useCommands } from '@/lib/client/useRoom';
 import { uuidv4 } from '@/lib/client/uuid';
+import lobby from './lobby.module.css';
 import styles from './room.module.css';
 
 type Props = { view: PlayerView; partnerOnline: boolean; cmds: ReturnType<typeof useCommands> };
 
 const bank = getQuestionBank();
+
+/** ไอคอนหน้ากองคำถามแต่ละหมวด */
+const CATEGORY_ICONS: Record<Category, string> = {
+  daily: '🏠',
+  food: '🍜',
+  gaming: '🎮',
+  hypothetical: '🔮',
+  annoyances: '😤',
+  relationships: '💞',
+};
 
 const noSubscribe = () => () => undefined;
 
@@ -60,31 +71,38 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
 
   return (
     <div className={styles.stack}>
-      <section className={styles.inviteCard} aria-labelledby="invite-title">
-        <p id="invite-title" className={styles.eyebrow}>
-          ชวนเพื่อนเข้าห้อง
+      {/* ไพ่เชิญ: รหัสห้องเป็นตัวต่อไม้ กดทั้งแถวเพื่อคัดลอก */}
+      <section className={lobby.invite} aria-labelledby="invite-title">
+        <p id="invite-title" className={lobby.inviteTitle}>
+          ไพ่เชิญเข้าห้อง
         </p>
         <button
           type="button"
-          className={styles.codeButton}
+          className={lobby.codeTiles}
           onClick={() => copy(view.code, 'code')}
           aria-label={`รหัสห้อง ${view.code.split('').join(' ')} กดเพื่อคัดลอก`}
         >
-          {view.code}
+          {view.code.split('').map((ch, i) => (
+            <span key={i} className={lobby.tile} aria-hidden="true">
+              {ch}
+            </span>
+          ))}
         </button>
-        <div className={styles.inviteActions}>
-          <Button variant="secondary" onClick={() => copy(inviteUrl, 'link')}>
-            {copied === 'link' ? 'คัดลอกลิงก์แล้ว ✓' : 'คัดลอกลิงก์เชิญ'}
-          </Button>
+        <p className={lobby.inviteHint}>{copied === 'code' ? 'คัดลอกรหัสแล้ว ✓' : 'แตะรหัสเพื่อคัดลอก'}</p>
+        <div className={lobby.inviteActions}>
+          <button type="button" className={lobby.paperButton} onClick={() => copy(inviteUrl, 'link')}>
+            {copied === 'link' ? 'คัดลอกลิงก์แล้ว ✓' : '🔗 คัดลอกลิงก์เชิญ'}
+          </button>
           {canShare && (
-            <Button
-              variant="ghost"
+            <button
+              type="button"
+              className={lobby.paperButton}
               onClick={() =>
-                navigator.share({ title: 'ใจตรงกันแค่ไหน', text: `มาเล่นด้วยกัน! รหัสห้อง ${view.code}`, url: inviteUrl }).catch(() => undefined)
+                navigator.share({ title: 'IN SYNC', text: `มาเล่นด้วยกัน! รหัสห้อง ${view.code}`, url: inviteUrl }).catch(() => undefined)
               }
             >
-              แชร์…
-            </Button>
+              📤 แชร์…
+            </button>
           )}
         </div>
         <p className={styles.srOnlyLive} aria-live="polite">
@@ -92,46 +110,60 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
         </p>
       </section>
 
-      <section className={styles.seats} aria-label="ผู้เล่นในห้อง">
+      {/* ที่นั่งรอบโต๊ะ: ไพ่ผู้เล่นสองใบหันหน้าเข้าหากัน */}
+      <section className={lobby.table} aria-label="ผู้เล่นในห้อง">
         <Seat member={view.you} isYou isHost={view.hostUid === view.you.uid} online />
+        <span className={lobby.vs} aria-hidden="true">
+          💞
+        </span>
         {partner ? (
           <Seat member={partner} isHost={view.hostUid === partner.uid} online={partnerOnline} />
         ) : (
-          <div className={`${styles.seat} ${styles.seatEmpty}`}>
-            <span className={styles.seatGhost} aria-hidden="true">
+          <div className={`${lobby.seat} ${lobby.seatBack}`}>
+            <span className={lobby.backMark} aria-hidden="true">
               ?
             </span>
-            <span>
-              <strong>ที่นั่งว่าง</strong>
-              <small>ส่งรหัสหรือลิงก์ให้เพื่อน</small>
-            </span>
+            <strong className={lobby.seatName}>รอเพื่อน…</strong>
+            <small className={lobby.backHint}>ส่งรหัสหรือลิงก์ให้เพื่อน</small>
           </div>
         )}
       </section>
 
-      <section className={styles.panel} aria-labelledby="cat-title">
-        <div className={styles.panelHead}>
-          <h2 id="cat-title">หมวดคำถาม</h2>
-          <span className={styles.muted}>
-            {questionCount} ข้อในคลัง · เล่น {ROUNDS_PER_GAME} ข้อ
+      {/* เลือกกองคำถาม */}
+      <section className={lobby.decksBoard} aria-labelledby="cat-title">
+        <div className={lobby.decksHead}>
+          <h2 id="cat-title">เลือกกองคำถาม</h2>
+          <span>
+            {questionCount} ข้อในกอง · เล่น {ROUNDS_PER_GAME} ข้อ
           </span>
         </div>
-        {!view.isHost && <p className={styles.muted}>เจ้าของห้องเป็นคนเลือกหมวด</p>}
-        <div className={styles.chips}>
+        {!view.isHost && <p className={lobby.boardNote}>เจ้าของห้องเป็นคนเลือกกอง</p>}
+        <div className={lobby.decks}>
           {CATEGORIES.map((c) => {
             const on = selected.includes(c);
             return (
               <button
                 key={c}
                 type="button"
-                className={`${styles.chip} ${on ? styles.chipOn : ''}`}
+                className={`${lobby.deck} ${on ? lobby.deckOn : ''}`}
                 aria-pressed={on}
                 disabled={!view.isHost || sending || (on && selected.length === 1)}
                 onClick={() => toggle(c)}
               >
-                <span aria-hidden="true">{on ? '✓' : '+'}</span>
-                {CATEGORY_LABELS[c]}
-                {c === 'relationships' && <small>เลือกเองถ้าอยาก</small>}
+                <span className={lobby.deckIcon} aria-hidden="true">
+                  {CATEGORY_ICONS[c]}
+                </span>
+                <span className={lobby.deckText}>
+                  <span className={lobby.deckName}>{CATEGORY_LABELS[c]}</span>
+                  <small>
+                    {countQuestionsIn(bank, [c])} ข้อ{c === 'relationships' ? ' · เลือกเองถ้าอยาก' : ''}
+                  </small>
+                </span>
+                {on && (
+                  <span className={lobby.deckCheck} aria-hidden="true">
+                    ✓
+                  </span>
+                )}
               </button>
             );
           })}
@@ -141,38 +173,39 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
             หมวดที่เลือกมีคำถาม {questionCount} ข้อ ต้องมีอย่างน้อย {ROUNDS_PER_GAME} ข้อ เลือกเพิ่มอีกหน่อยนะ
           </Banner>
         )}
-        {view.isHost && <p className={styles.hint}>เปลี่ยนหมวดแล้ว ความพร้อมของทั้งคู่จะถูกรีเซ็ตเพื่อให้เห็นการตั้งค่าใหม่</p>}
+        {view.isHost && <p className={lobby.boardNote}>เปลี่ยนกองแล้ว ความพร้อมของทั้งคู่จะถูกรีเซ็ตเพื่อให้เห็นการตั้งค่าใหม่</p>}
+
+        {/* ถาดไม้: ปุ่มพร้อม / เริ่มเกม */}
+        <div className={lobby.tray}>
+          <Button
+            variant={view.you.lobbyReady ? 'secondary' : 'primary'}
+            block
+            loading={sending}
+            onClick={() => cmds.send(`ready:${uuidv4()}`, { kind: 'ready', ready: !view.you.lobbyReady })}
+          >
+            {view.you.lobbyReady ? 'ยกเลิกความพร้อม' : 'ฉันพร้อมแล้ว ✋'}
+          </Button>
+
+          {view.isHost ? (
+            <>
+              <Button
+                block
+                disabled={startBlocker !== null || sending}
+                onClick={() => cmds.send(`start:${view.revision}`, { kind: 'start' })}
+              >
+                เริ่มเกม 🎲
+              </Button>
+              {startBlocker && <p className={lobby.trayHint}>{startBlocker}</p>}
+            </>
+          ) : (
+            <p className={lobby.trayHint}>
+              {view.you.lobbyReady
+                ? `รอ ${partner?.displayName ?? 'เจ้าของห้อง'} กดเริ่มเกม…`
+                : 'กด “ฉันพร้อมแล้ว” เมื่อพร้อมเล่น'}
+            </p>
+          )}
+        </div>
       </section>
-
-      <div className={styles.actionBar}>
-        <Button
-          variant={view.you.lobbyReady ? 'secondary' : 'primary'}
-          block
-          loading={sending}
-          onClick={() => cmds.send(`ready:${uuidv4()}`, { kind: 'ready', ready: !view.you.lobbyReady })}
-        >
-          {view.you.lobbyReady ? 'ยกเลิกความพร้อม' : 'ฉันพร้อมแล้ว'}
-        </Button>
-
-        {view.isHost ? (
-          <>
-            <Button
-              block
-              disabled={startBlocker !== null || sending}
-              onClick={() => cmds.send(`start:${view.revision}`, { kind: 'start' })}
-            >
-              เริ่มเกม 🎲
-            </Button>
-            {startBlocker && <p className={styles.hint}>{startBlocker}</p>}
-          </>
-        ) : (
-          <p className={styles.hint}>
-            {view.you.lobbyReady
-              ? `รอ ${partner?.displayName ?? 'เจ้าของห้อง'} กดเริ่มเกม…`
-              : 'กด “ฉันพร้อมแล้ว” เมื่อพร้อมเล่น'}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
@@ -188,23 +221,25 @@ function Seat({
   isHost: boolean;
   online: boolean;
 }) {
+  const name = `${member.displayName}${isYou ? ' (คุณ)' : ''}`;
   return (
-    <div className={`${styles.seat} ${member.lobbyReady ? styles.seatReady : ''}`}>
-      <Avatar id={member.avatarId} size="lg" online={online} label={`${member.displayName} ${online ? 'ออนไลน์' : 'ออฟไลน์'}`} />
-      <span className={styles.seatMeta}>
-        <strong className={styles.seatName}>
-          {member.displayName}
-          {isYou && <small> (คุณ)</small>}
-        </strong>
-        <span className={styles.seatTags}>
-          {isHost && <span className={styles.tag}>👑 เจ้าของห้อง</span>}
-          <span className={`${styles.tag} ${online ? styles.tagOnline : styles.tagOffline}`}>
-            {online ? '● ออนไลน์' : '○ ออฟไลน์'}
-          </span>
+    <div className={`${lobby.seat} ${member.lobbyReady ? lobby.seatReady : ''}`}>
+      {isHost && (
+        <span className={lobby.crown} role="img" aria-label="เจ้าของห้อง">
+          👑
         </span>
-        <span className={member.lobbyReady ? styles.readyYes : styles.readyNo}>
-          {member.lobbyReady ? '✓ พร้อมแล้ว' : '… ยังไม่พร้อม'}
-        </span>
+      )}
+      <Avatar id={member.avatarId} size="lg" online={online} label={`${name} ${online ? 'ออนไลน์' : 'ออฟไลน์'}`} />
+      <strong className={lobby.seatName} title={name}>
+        {member.displayName}
+      </strong>
+      <small className={lobby.seatSub}>
+        {isYou ? 'คุณ · ' : ''}
+        {online ? 'ออนไลน์' : 'ออฟไลน์'}
+      </small>
+      {/* ความพร้อมเป็นตราประทับ */}
+      <span className={member.lobbyReady ? lobby.stampReady : lobby.stampWaiting}>
+        {member.lobbyReady ? 'พร้อม!' : 'ยังไม่พร้อม'}
       </span>
     </div>
   );

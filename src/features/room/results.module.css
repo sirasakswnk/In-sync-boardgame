@@ -1,0 +1,728 @@
+/* หน้าสรุปคะแนน — พอร์ตจากต้นแบบ in-sync-results.html
+   สีของต้นแบบใช้เฉพาะในหน้านี้ ตัวอักษรเล็กสุดขยายเป็น 11px ให้อ่านได้บนมือถือ */
+
+.page {
+  --rs-cream: #fff8e7;
+  --rs-ink: #2d3040;
+  --rs-coral: #ed9b8e;
+  --rs-serif: Georgia, 'Times New Roman', serif;
+
+  width: min(460px, 100%);
+  margin: 0 auto;
+  padding-bottom: 8px;
+  color: var(--rs-ink);
+}
+
+/* specificity ต่ำ ให้ class ด้านล่างตั้ง margin เองได้ */
+:where(.page) :where(h1, h2, h3, p) {
+  margin: 0;
+}
+
+/* ---------- หัวหน้า ---------- */
+
+.hero {
+  position: relative;
+  padding-top: 14px;
+  color: var(--rs-cream);
+  text-align: center;
+}
+
+.endLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: #e6d3a8;
+  font-size: 12px;
+}
+
+.endLabel::before,
+.endLabel::after {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: #c9b58166;
+}
+
+.hero h1 {
+  margin: 9px 0 3px;
+  font-size: clamp(23px, 6.3vw, 29px);
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: -0.7px;
+}
+
+.hero p:last-child {
+  color: #dbe3d2;
+  font-size: 12px;
+}
+
+/* ---------- ไพ่คะแนนบนโต๊ะ ---------- */
+
+.scene {
+  position: relative;
+  margin: 39px 4px 0;
+  padding: 0 3px 23px;
+}
+
+/* ขอบโต๊ะไม้ */
+.scene::after {
+  content: '';
+  position: absolute;
+  right: -14px;
+  bottom: 7px;
+  left: -14px;
+  z-index: 0;
+  height: 58px;
+  border-top: 2px solid #be99705c;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #7c583f, #a88158 48%, #80593d);
+  box-shadow:
+    0 7px 0 #624632,
+    0 15px 14px #102c2645;
+}
+
+/* ผ้าบนโต๊ะ */
+.scene::before {
+  content: '';
+  position: absolute;
+  right: -8px;
+  bottom: 17px;
+  left: -8px;
+  z-index: 1;
+  height: 47px;
+  border-radius: 50%;
+  background: #315946;
+}
+
+.pair {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.playerCard {
+  position: relative;
+  min-width: 0;
+  padding: 19px 9px 15px;
+  border: 5px solid #fffcf4;
+  border-radius: 17px;
+  outline: 1px solid #d7ceb6;
+  background: linear-gradient(165deg, #fffdf6, #f6edda);
+  box-shadow:
+    0 4px 0 #d3c7aa,
+    0 14px 18px #132f304d;
+  text-align: center;
+  transform: rotate(3deg) translateY(12px);
+  transition:
+    transform 0.4s,
+    box-shadow 0.4s;
+  animation: arrive 0.55s both;
+}
+
+.playerCard:first-child {
+  transform: rotate(-3deg) translateY(12px);
+}
+
+.playerCard:last-child {
+  animation-delay: 0.08s;
+}
+
+.winner,
+.tied,
+.playerCard:first-child.winner,
+.playerCard:first-child.tied {
+  outline: 2px solid #e6c57c;
+  box-shadow:
+    0 4px 0 #bb9756,
+    0 14px 24px #112e2b66;
+  transform: rotate(-3deg) translateY(-6px);
+}
+
+.playerCard:last-child.winner,
+.playerCard:last-child.tied {
+  transform: rotate(3deg) translateY(-6px);
+}
+
+.crown {
+  position: absolute;
+  top: -31px;
+  left: 50%;
+  filter: drop-shadow(0 3px 0 #70563c40);
+  transform: translateX(-50%) rotate(-9deg);
+  animation: crownIn 0.6s both 0.2s;
+}
+
+.crown svg {
+  display: block;
+  width: 46px;
+  height: 37px;
+}
+
+.smallSuit {
+  position: absolute;
+  top: 6px;
+  left: 7px;
+  color: #c1897c;
+  font-size: 12px;
+}
+
+.playerCard:last-child .smallSuit {
+  color: #9684b0;
+}
+
+.portrait {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 10px;
+  border: 3px solid #fff9eb;
+  border-radius: 50%;
+  background: var(--portrait, #f0d6ca);
+  box-shadow: 0 0 0 1px #dfbfa8;
+  font-size: 39px;
+  line-height: 1;
+}
+
+.playerName {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.youLabel {
+  display: block;
+  min-height: 16px;
+  margin: 3px 0 9px;
+  color: #a77562;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.playerCard:last-child .youLabel {
+  color: #827493;
+}
+
+.score {
+  color: #3b4b3c;
+  font-family: var(--rs-serif);
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.score small {
+  margin-left: 2px;
+  color: #8b8e80;
+  font-family: 'Noto Sans Thai', Tahoma, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.scoreDescription {
+  margin-top: 7px;
+  color: #827a69;
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.resultBadge {
+  display: inline-block;
+  min-height: 22px;
+  margin-top: 12px;
+  padding: 3px 10px;
+  border-radius: 5px;
+  background: #ede9df;
+  color: #827a6d;
+  font-size: 11px;
+}
+
+.winner .resultBadge {
+  background: #f3e4b9;
+  color: #795b24;
+  font-weight: 700;
+}
+
+.tied .resultBadge {
+  background: #e7dfef;
+  color: #726081;
+}
+
+.between {
+  position: absolute;
+  top: 85px;
+  left: 50%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border: 1px solid #a97865;
+  border-radius: 50%;
+  background: #d18c7b;
+  box-shadow: 0 3px 0 #865d49;
+  color: #fff3d5;
+  font-size: 13px;
+  transform: translateX(-50%);
+}
+
+.spark {
+  position: absolute;
+  z-index: 4;
+  color: #f0d594;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.s1 {
+  top: 18px;
+  left: -11px;
+  transform: rotate(-15deg);
+}
+
+.s2 {
+  top: 51px;
+  right: -9px;
+  font-size: 13px;
+}
+
+.s3 {
+  top: -20px;
+  right: 37px;
+  font-size: 12px;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes crownIn {
+  from {
+    opacity: 0;
+    translate: 0 -12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.afterScore {
+  margin: 12px 0 21px;
+  color: #e7ddbe;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ---------- ปุ่มเล่นอีกครั้ง ---------- */
+
+.playAction {
+  padding: 0 2px;
+}
+
+.playButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid #e59b86;
+  border-radius: 13px;
+  background: var(--rs-coral);
+  box-shadow:
+    inset 0 2px 0 #ffcfb8,
+    0 4px 0 #b97063;
+  color: #422e31;
+  font-size: 16px;
+  font-weight: 800;
+  transition:
+    transform 0.15s,
+    background 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.playButton:active:not(:disabled) {
+  box-shadow:
+    inset 0 2px 0 #ffcfb8,
+    0 1px 0 #b97063;
+  transform: translateY(3px);
+}
+
+.playButton:disabled {
+  border-color: #647c66;
+  background: #466555;
+  box-shadow:
+    inset 0 1px 0 #70836b,
+    0 3px 0 #183e30;
+  color: #e3e7d5;
+  cursor: default;
+}
+
+.playButton.playWaiting {
+  border-color: #d8cba9;
+  background: #f7edd8;
+  box-shadow: 0 3px 0 #b7ac91;
+  color: #4b6351;
+}
+
+.actionHint {
+  min-height: 17px;
+  margin-top: 10px;
+  color: #d2ddc9;
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.actionInvite {
+  color: #f7d09f;
+}
+
+/* ---------- บันทึกความรู้ใจ ---------- */
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 27px 0 18px;
+  color: #d8dcc1;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sectionLabel::before,
+.sectionLabel::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid #b5c4a733;
+}
+
+.note {
+  position: relative;
+  margin: 0 4px;
+  padding: 24px 18px 19px;
+  border-radius: 3px 3px 10px 4px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 29px, #8c784312 29px 30px),
+    #fff6df;
+  box-shadow:
+    0 5px 0 #dfcfad,
+    0 13px 16px #18392c38;
+  color: #45483c;
+  transform: rotate(-1deg);
+}
+
+.tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 70px;
+  height: 19px;
+  background: repeating-linear-gradient(90deg, #d8c499bd 0 7px, #e6d1aebd 7px 8px);
+  clip-path: polygon(3% 0, 100% 0, 97% 26%, 100% 50%, 97% 75%, 100% 100%, 0 100%, 3% 75%, 0 50%);
+  transform: translateX(-50%) rotate(5deg);
+}
+
+.noteHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #836b4f;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.bestRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 11px 0;
+  border-top: 1px dashed #d9caac;
+}
+
+.who {
+  color: #8b7a60;
+  font-size: 11px;
+}
+
+.bestRow h3 {
+  margin: 2px 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.roundNumber {
+  color: #9c8666;
+  font-size: 11px;
+}
+
+.bestScore {
+  align-self: center;
+  color: #64563c;
+  font-family: var(--rs-serif);
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.bestScore small {
+  color: #9c896b;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.hits {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 5px;
+  padding-top: 12px;
+  border-top: 1px dashed #d9caac;
+  color: #8b7b61;
+  font-size: 12px;
+}
+
+.hits strong {
+  color: #595c47;
+}
+
+.hitsOf {
+  margin-top: 5px;
+  color: #9c896e;
+  font-size: 11px;
+  text-align: right;
+}
+
+/* ---------- ย้อนดูเฉลย ---------- */
+
+.history {
+  margin-top: 27px;
+}
+
+.history > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 5px 2px;
+  color: #f5edda;
+  font-size: 14px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.history > summary small {
+  margin-left: auto;
+  color: #bac9b4;
+  font-size: 11px;
+}
+
+.history > summary::-webkit-details-marker,
+.round > summary::-webkit-details-marker {
+  display: none;
+}
+
+.chevron {
+  font-size: 13px;
+  transition: transform 0.2s;
+}
+
+.history[open] > summary .chevron,
+.round[open] > summary .chevron {
+  transform: rotate(180deg);
+}
+
+.historyList {
+  display: grid;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.round {
+  overflow: hidden;
+  border: 1px solid #e3d5b9;
+  border-radius: 11px;
+  background: #fff9ea;
+  box-shadow: 0 3px 0 #b7aa8733;
+}
+
+.round > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 12px 11px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.roundIndex {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  background: #f0dfb4;
+  color: #8b7040;
+  font: 700 13px var(--rs-serif);
+}
+
+.roundText {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+}
+
+.roundText strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.roundText small {
+  color: #8b8275;
+  font-size: 11px;
+}
+
+.roundTotal {
+  color: #5b6e57;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.round .chevron {
+  color: #9a9079;
+  font-size: 12px;
+}
+
+.breakdown {
+  margin: 0 11px;
+  padding: 11px 0 13px;
+  border-top: 1px dashed #d6c8ae;
+}
+
+.breakdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.breakdown caption {
+  margin-bottom: 9px;
+  color: #857254;
+  font-size: 11px;
+  text-align: left;
+}
+
+.breakdown th {
+  padding: 0 2px 7px;
+  color: #9c8b6b;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.breakdown td {
+  padding: 6px 2px;
+  border-top: 1px solid #ebdfc8;
+}
+
+.breakdown th:not(:first-child),
+.breakdown td:not(:first-child) {
+  width: 16%;
+  text-align: center;
+}
+
+.exact {
+  color: #34725a;
+  font-weight: 700;
+}
+
+.near {
+  color: #957037;
+  font-weight: 700;
+}
+
+.bottom {
+  padding: 27px 0 2px;
+  color: #b5c5ae;
+  font-size: 11px;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.bottom span {
+  display: block;
+  margin-top: 3px;
+  color: #d9b09d;
+}
+
+@media (max-width: 370px) {
+  .pair {
+    gap: 15px;
+  }
+
+  .playerCard {
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .score {
+    font-size: 53px;
+  }
+
+  .portrait {
+    width: 57px;
+    height: 57px;
+    font-size: 35px;
+  }
+
+  .playerName {
+    font-size: 14px;
+  }
+
+  .hero h1 {
+    font-size: 23px;
+  }
+
+  .note {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .playerCard,
+  .crown {
+    animation: none;
+  }
+
+  .playerCard,
+  .playButton,
+  .chevron {
+    transition: none;
+  }
+}

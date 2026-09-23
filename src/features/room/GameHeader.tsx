@@ -19,7 +19,7 @@ export function GameHeader({ view, partnerOnline, onLeave }: Props) {
     <header className={styles.header}>
       <div className={styles.headerTop}>
         <Link href="/" className={styles.brand}>
-          <span aria-hidden="true">💞</span> ใจตรงกันแค่ไหน
+          <span aria-hidden="true">💞</span> IN SYNC
         </Link>
         <RoomMenu view={view} onLeave={onLeave} />
       </div>

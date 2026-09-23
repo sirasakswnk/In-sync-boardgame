@@ -3,13 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Banner } from '@/components/Banner';
-import { Button } from '@/components/Button';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ProfileFields, type ProfileDraft } from '@/components/ProfileFields';
 import { displayNameSchema, roomCodeSchema, type AvatarId } from '@/lib/game';
 import { api, ApiFailure } from '@/lib/client/api';
 import { ensureUser, firebaseConfigured } from '@/lib/client/firebase';
 import { uuidv4 } from '@/lib/client/uuid';
+import { TableScene } from './TableScene';
 import styles from './HomePage.module.css';
 
 type ProfileResponse = {
@@ -31,6 +31,7 @@ export function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
   const [confirmLeave, setConfirmLeave] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     if (!configured) return;
@@ -136,116 +137,167 @@ export function HomePage() {
   const locked = busy !== null || !configured;
 
   return (
-    <main className={styles.home}>
-      <section className={styles.hero}>
-        <div className={styles.logo} aria-hidden="true">
-          <span className={`${styles.miniCard} ${styles.cardA}`}>🍜</span>
-          <span className={`${styles.miniCard} ${styles.cardB}`}>🎮</span>
-          <span className={`${styles.miniCard} ${styles.cardC}`}>🌅</span>
-          <span className={styles.heart}>💞</span>
+    <div className={styles.page}>
+      <main className={styles.home}>
+        <div className={styles.topline}>
+          <span>
+            <span className={styles.tinyHeart} aria-hidden="true">
+              ♥♥
+            </span>
+            IN SYNC
+          </span>
+          <button type="button" className={styles.helpButton} aria-label="วิธีเล่น" onClick={() => setHelpOpen(true)}>
+            ?
+          </button>
         </div>
-        <h1 className={styles.title}>ใจตรงกันแค่ไหน</h1>
-        <p className={styles.tagline}>เกมจัดอันดับสำหรับสองคน เรียงสิ่งที่คุณชอบ ทายใจอีกคน แล้วเปิดเฉลยพร้อมกัน</p>
 
-        <ol className={styles.steps}>
-          <li>
-            <span className={styles.stepNum}>1</span>
-            <span>
-              <strong>จัดอันดับของคุณ</strong>
-              <small>เรียงการ์ด 5 ใบตามใจตัวเอง</small>
+        <header className={styles.brand}>
+          <p className={styles.eyebrow}>โต๊ะนี้มีที่ให้เราสองคน</p>
+          <h1>
+            IN <span className={styles.accent}>SYNC</span>
+            <span className={styles.miniHeart} aria-hidden="true">
+              ♥
             </span>
+          </h1>
+          <p className={styles.tagline}>คิดว่ารู้ใจเพื่อนแค่ไหน? มาลองกัน</p>
+          <span className={styles.star} aria-hidden="true">
+            ✧
+          </span>
+        </header>
+
+        <TableScene />
+
+        <p className={styles.sceneCaption}>ลองแตะไพ่ดูสิ…คุณจะเลือกอะไรเป็นอันดับ 1?</p>
+        <ol className={styles.steps} aria-label="วิธีเล่นสามขั้นตอน">
+          <li className={styles.step}>
+            <span className={styles.num}>1</span>จัดอันดับ
           </li>
-          <li>
-            <span className={`${styles.stepNum} ${styles.stepGuess}`}>2</span>
-            <span>
-              <strong>ทายใจคู่หู</strong>
-              <small>คิดว่าอีกคนเรียงแบบไหน</small>
-            </span>
+          <li className={styles.arrow} aria-hidden="true">
+            →
           </li>
-          <li>
-            <span className={`${styles.stepNum} ${styles.stepReveal}`}>3</span>
-            <span>
-              <strong>เปิดเฉลยพร้อมกัน</strong>
-              <small>ดูว่ารู้ใจกันแค่ไหน แล้วคุยกันต่อ</small>
-            </span>
+          <li className={`${styles.step} ${styles.stepGuess}`}>
+            <span className={styles.num}>2</span>ทายใจ
+          </li>
+          <li className={styles.arrow} aria-hidden="true">
+            →
+          </li>
+          <li className={`${styles.step} ${styles.stepReveal}`}>
+            <span className={styles.num}>3</span>เปิดเฉลย
           </li>
         </ol>
-      </section>
 
-      <section className={styles.panel} aria-label="เริ่มเล่น">
-        {!configured && (
-          <Banner tone="warn">
-            ยังไม่ได้ตั้งค่า Firebase ให้เว็บนี้ ดูขั้นตอนใน README หัวข้อ “ตั้งค่า Firebase” แล้วรีสตาร์ตเซิร์ฟเวอร์
-          </Banner>
-        )}
+        <section className={styles.setup} aria-labelledby="setup-title">
+          <h2 className={styles.setupTitle} id="setup-title">
+            เตรียมตัวเข้าโต๊ะ
+          </h2>
+          <p className={styles.setupSub}>เลือกตัวคุณ แล้วชวนคนที่อยากรู้ใจมาเล่น</p>
 
-        {activeRoom && (
-          <Banner
-            tone="info"
-            icon="🚪"
-            action={
+          {!configured && (
+            <Banner tone="warn">
+              ยังไม่ได้ตั้งค่า Firebase ให้เว็บนี้ ดูขั้นตอนใน README หัวข้อ “ตั้งค่า Firebase” แล้วรีสตาร์ตเซิร์ฟเวอร์
+            </Banner>
+          )}
+
+          {activeRoom && (
+            // ห้องที่ค้างอยู่: ใบโน้ตบนโต๊ะ รหัสเป็นตัวต่อไม้ แล้วเลือกกลับเข้าห้องหรือออก
+            <div className={styles.activeSlip} role="status">
+              <p className={styles.activeTitle}>
+                <span aria-hidden="true">🚪</span> มีโต๊ะที่คุณเล่นค้างไว้
+              </p>
+              <p className={styles.activeTiles} aria-label={`รหัสห้อง ${activeRoom.split('').join(' ')}`}>
+                {activeRoom.split('').map((ch, i) => (
+                  <span key={i} className={styles.activeTile} aria-hidden="true">
+                    {ch}
+                  </span>
+                ))}
+              </p>
               <div className={styles.activeActions}>
-                <Button variant="primary" onClick={() => router.push(`/room/${activeRoom}`)} disabled={busy !== null}>
-                  กลับเข้าห้อง
-                </Button>
-                <Button variant="ghost" onClick={() => setConfirmLeave(true)} disabled={busy !== null}>
+                <button
+                  type="button"
+                  className={styles.activeBack}
+                  onClick={() => router.push(`/room/${activeRoom}`)}
+                  disabled={busy !== null}
+                >
+                  กลับเข้าห้อง →
+                </button>
+                <button type="button" className={styles.activeLeave} onClick={() => setConfirmLeave(true)} disabled={busy !== null}>
                   ออกจากห้องเดิม
-                </Button>
+                </button>
               </div>
-            }
+            </div>
+          )}
+
+          {error && (
+            <Banner tone="error" live>
+              {error}
+            </Banner>
+          )}
+
+          <ProfileFields value={profile} onChange={setProfile} error={nameError} disabled={locked} look="table" />
+
+          <button
+            type="button"
+            className={styles.primary}
+            onClick={createRoom}
+            disabled={locked || Boolean(activeRoom)}
+            aria-busy={busy === 'create' || undefined}
           >
-            คุณมีห้องที่ค้างอยู่ รหัส <strong className={styles.code}>{activeRoom}</strong>
-          </Banner>
-        )}
+            <span className={styles.plus} aria-hidden="true">
+              {busy === 'create' ? '…' : '＋'}
+            </span>
+            สร้างห้องใหม่
+          </button>
 
-        {error && (
-          <Banner tone="error" live>
-            {error}
-          </Banner>
-        )}
+          <div className={styles.divider}>หรือเข้าห้องของเพื่อน</div>
 
-        <ProfileFields value={profile} onChange={setProfile} error={nameError} disabled={locked} />
+          <form className={styles.joinRow} onSubmit={joinRoom} noValidate>
+            <input
+              id="room-code"
+              className={styles.joinInput}
+              aria-label="รหัสห้องของเพื่อน"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+              placeholder="ใส่รหัสห้อง"
+              inputMode="text"
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              disabled={locked}
+              aria-invalid={Boolean(codeError) || undefined}
+              aria-describedby={codeError ? 'code-error' : undefined}
+            />
+            <button type="submit" className={styles.joinButton} disabled={locked} aria-busy={busy === 'join' || undefined}>
+              {busy === 'join' ? '…' : 'เข้าห้อง'}
+            </button>
+          </form>
+          {codeError && (
+            <p id="code-error" className={styles.fieldError} role="alert">
+              {codeError}
+            </p>
+          )}
 
-        <Button block onClick={createRoom} loading={busy === 'create'} disabled={locked || Boolean(activeRoom)}>
-          สร้างห้องใหม่
-        </Button>
-
-        <div className={styles.divider}>
-          <span>หรือเข้าห้องของเพื่อน</span>
-        </div>
-
-        <form className={styles.joinForm} onSubmit={joinRoom} noValidate>
-          <label htmlFor="room-code" className="visually-hidden">
-            รหัสห้อง 6 ตัว
-          </label>
-          <input
-            id="room-code"
-            className={styles.codeInput}
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
-            placeholder="รหัสห้อง"
-            inputMode="text"
-            autoCapitalize="characters"
-            autoComplete="off"
-            spellCheck={false}
-            disabled={locked}
-            aria-invalid={Boolean(codeError) || undefined}
-            aria-describedby={codeError ? 'code-error' : undefined}
-          />
-          <Button type="submit" variant="secondary" loading={busy === 'join'} disabled={locked}>
-            เข้าห้อง
-          </Button>
-        </form>
-        {codeError && (
-          <p id="code-error" className={styles.fieldError} role="alert">
-            {codeError}
+          <p className={styles.footnote}>
+            เล่นครั้งละ 2 คน · ผลัดกันวาง ผลัดกันทาย 6 รอบ
+            <br />
+            คุยกันต่อหน้าหรือโทรหากันระหว่างเล่นได้เลย
           </p>
-        )}
+        </section>
 
-        <p className={styles.note}>
-          เกมนี้ไม่มีแชตหรือเสียงในตัว คุยกันต่อหน้าหรือโทรหากันระหว่างเล่นได้เลย · เล่นได้ครั้งละสองคนต่อห้อง
+        <p className={styles.footerBrand}>
+          MADE FOR TWO <span aria-hidden="true">♥</span>
         </p>
-      </section>
+      </main>
+
+      <ConfirmDialog
+        open={helpOpen}
+        title="เราจะรู้ใจกันแค่ไหน?"
+        body="คนหนึ่งจัดอันดับตัวเลือก 5 ใบตามใจ อีกคนลองทายว่าเรียงอย่างไร แล้วเปิดเฉลยและสลับบทบาทกัน เล่นทั้งหมด 6 รอบ"
+        confirmLabel="เข้าใจแล้ว"
+        cancelLabel={null}
+        confirmVariant="primary"
+        onConfirm={() => setHelpOpen(false)}
+        onCancel={() => setHelpOpen(false)}
+      />
 
       <ConfirmDialog
         open={confirmLeave}
@@ -256,6 +308,6 @@ export function HomePage() {
         onConfirm={leaveActive}
         onCancel={() => setConfirmLeave(false)}
       />
-    </main>
+    </div>
   );
 }

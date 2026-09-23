@@ -7,7 +7,7 @@ import { RoomProblem } from '@/features/room/RoomStates';
 type Props = { params: Promise<{ code: string }> };
 
 export const metadata: Metadata = {
-  title: 'ห้องเกม · ใจตรงกันแค่ไหน',
+  title: 'ห้องเกม · IN SYNC',
 };
 
 export default async function RoomPage({ params }: Props) {
