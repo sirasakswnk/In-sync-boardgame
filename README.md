@@ -9,12 +9,15 @@
 
 บทบาทสลับทุกรอบ (รอบแรกผู้สร้างห้องวาง) ทำให้แต่ละคนได้ทาย 3 รอบ คะแนนเต็มคนละ 30 แล้วสรุปว่าใครทายใจอีกฝ่ายได้แม่นกว่า
 
-- UI ภาษาไทยทั้งหมด ลากการ์ดได้ด้วยเมาส์/นิ้ว ใช้คีย์บอร์ดได้ และมีปุ่มขึ้น/ลงเสมอ
+- UI ภาษาไทยทั้งหมด ธีมโต๊ะบอร์ดเกม: ไพ่ แท่นอันดับ ถาดไม้ และใบโน้ตกระดาษ
+- วางไพ่ได้สองทาง — ลากด้วยเมาส์/นิ้ว หรือแตะไพ่แล้วแตะช่อง (ช่องและไพ่เป็นปุ่มจริง จึงกดด้วย Tab + Enter ได้)
 - เล่นจากคนละเบราว์เซอร์หรือคนละเครื่องผ่าน backend จริง ไม่มีผู้เล่นจำลอง
 - คำตอบของคนวางเป็นความลับจนคนทายล็อกคำทาย บังคับที่ชั้นฐานข้อมูล ไม่ได้แค่ซ่อนใน UI
 - รีเฟรช ปิดแท็บ หรือเน็ตหลุด แล้วกลับเข้าที่นั่งและเกมเดิมได้
 
-> สเปกเต็มอยู่ใน [plan.md](plan.md) และ checklist ในไฟล์นั้นอัปเดตตามสิ่งที่ทำเสร็จและทดสอบแล้วจริง
+เล่นได้ที่ <https://heartsyncboardgamebymingmx.vercel.app>
+
+> สเปกเต็ม (`plan.md`) เก็บไว้ในเครื่องผู้พัฒนา ไม่ได้อยู่ใน repo นี้ README นี้จึงอธิบายทุกอย่างที่ต้องใช้จริงแบบครบในตัว
 
 ---
 
@@ -48,11 +51,11 @@
 | Tests | Vitest (unit + integration ที่คุยกับ backend จริง) |
 | ปลายทาง deploy | Vercel (serverless) |
 
-### ทำไมต่างจาก plan.md §8
+### ทำไมต่างจากแผนตั้งต้น
 
-plan.md เสนอ Node + Express + Socket.IO + SQLite เป็นค่าเริ่มต้น แต่ปลายทางที่เลือกคือ **Vercel + Firebase** ซึ่ง Vercel รันเฉพาะ serverless function อายุสั้น จึง **ถือ Socket.IO server ค้างไว้ไม่ได้** (plan.md §8 เองก็ระบุข้อนี้) จึงเปลี่ยนเป็น:
+แผนตั้งต้นเสนอ Node + Express + Socket.IO + SQLite แต่ปลายทางที่เลือกคือ **Vercel + Firebase** ซึ่ง Vercel รันเฉพาะ serverless function อายุสั้น จึง **ถือ Socket.IO server ค้างไว้ไม่ได้** จึงเปลี่ยนเป็น:
 
-| plan.md เดิม | ของจริงในโปรเจกต์ |
+| แผนเดิม | ของจริงในโปรเจกต์ |
 | --- | --- |
 | Socket.IO events | RTDB listeners — client ฟังเฉพาะมุมมองของตัวเอง |
 | Socket commands | `POST /api/rooms/[code]/commands` (Next.js route handler) |
@@ -62,7 +65,7 @@ plan.md เสนอ Node + Express + Socket.IO + SQLite เป็นค่า�
 | นับ socket เพื่อทำ presence | `onDisconnect()` ของ RTDB หนึ่ง connection ต่อแท็บ |
 | cron ใน process | Vercel Cron → `/api/cron/cleanup` + ตรวจหมดอายุทุกคำสั่ง |
 
-สูตรคะแนนรายการ์ด (plan.md §5) และ phase ของ state machine (§9.1) คงเดิม แต่**กติกาการเล่นเปลี่ยนจาก plan.md §4** ตามที่ผู้ใช้ขอ: จากเดิมที่ทั้งคู่เรียงและทายพร้อมกัน เป็นผลัดเทิร์นคนวาง/คนทาย และคนวางเป็นคนพาไปต่อ (รายละเอียดใน plan.md §12)
+สูตรคะแนนรายการ์ดและ phase ของ state machine คงเดิมตามแผน แต่**กติกาการเล่นเปลี่ยน**ตามที่ผู้ใช้ขอ: จากเดิมที่ทั้งคู่เรียงและทายพร้อมกัน เป็นผลัดเทิร์นคนวาง/คนทาย และคนวางเป็นคนพาไปต่อ
 
 ### หัวใจของการออกแบบ
 
@@ -195,7 +198,7 @@ npm run dev:emulator
 | `npm run check:questions` | ตรวจคลังคำถาม 30 ข้อกับ schema |
 | `npm run rules:deploy` | deploy `database.rules.json` ขึ้น project จริง |
 
-ไม่มี `db:migrate` ตามที่ plan.md §14 เขียนไว้ เพราะ RTDB ไม่มี schema/migration — สิ่งที่เทียบเท่าคือ `rules:deploy` และคลังคำถามอยู่ในซอร์ส ([src/data/questions.th.json](src/data/questions.th.json)) ไม่ต้อง seed ลงฐานข้อมูล
+ไม่มี `db:migrate` ตามที่แผนเดิมเขียนไว้ เพราะ RTDB ไม่มี schema/migration — สิ่งที่เทียบเท่าคือ `rules:deploy` และคลังคำถามอยู่ในซอร์ส ([src/data/questions.th.json](src/data/questions.th.json)) ไม่ต้อง seed ลงฐานข้อมูล
 
 ---
 
@@ -209,7 +212,7 @@ npm run dev:emulator
 
 ข้อควรรู้:
 
-- **สองแท็บใน profile เดียวกันคือผู้เล่นคนเดียวกัน** ไม่กินที่นั่งที่สอง (ตั้งใจไว้ตาม plan.md §10.1)
+- **สองแท็บใน profile เดียวกันคือผู้เล่นคนเดียวกัน** ไม่กินที่นั่งที่สอง (ตั้งใจไว้แบบนี้)
 - ปิดแท็บไม่ถือว่าออกจากห้อง ต้องกด **ออกจากห้อง** และยืนยัน ซึ่งจะปิดห้องให้ทั้งคู่
 - เกมไม่มีแชตหรือเสียงในตัว คุยกันต่อหน้าหรือโทรหากันระหว่างเล่น
 
@@ -239,11 +242,13 @@ npm run dev:emulator
 
 ## Deploy ขึ้น Vercel
 
-**ยังไม่ได้ deploy** — โปรเจกต์เตรียมพร้อมไว้ ทำตามนี้เมื่อพร้อม:
+**deploy แล้วที่ <https://heartsyncboardgamebymingmx.vercel.app>** — ทุก push ขึ้น branch `main` ของ <https://github.com/sirasakswnk/heart-sync> จะ deploy อัตโนมัติ
+
+ถ้าจะตั้ง deployment ใหม่เอง:
 
 1. push โค้ดขึ้น Git provider แล้ว **Import Project** ใน Vercel (ตรวจเจอ Next.js อัตโนมัติ)
 2. **Settings → Environment Variables** ใส่ทุกตัวใน `.env.example` โดย:
-   - `APP_ORIGIN` = โดเมนจริง เช่น `https://heart-sync.vercel.app` (ถ้ามีหลายโดเมนคั่นด้วย `,`)
+   - `APP_ORIGIN` = โดเมนจริง เช่น `https://heartsyncboardgamebymingmx.vercel.app` (ถ้ามีหลายโดเมนคั่นด้วย `,`)
    - `FIREBASE_SERVICE_ACCOUNT` = JSON บรรทัดเดียว (ไม่ต้องครอบ quote ใน Vercel)
    - `CRON_SECRET` = ค่าสุ่มยาว ๆ — Vercel Cron ส่งค่านี้มาใน `Authorization` header ให้เอง
    - **ห้ามตั้ง** `HS_TEST_SEED`, `FIREBASE_*_EMULATOR_HOST`, `NEXT_PUBLIC_FIREBASE_EMULATOR`
@@ -273,7 +278,7 @@ HTTPS: Vercel ให้อัตโนมัติ ไม่มี cookie ที
 
 **Unit — `npm run test`** (ไม่ต้องมี Firebase)
 
-- คะแนนตาม plan.md §5: 10 / 8 / 6 / 2, ครบทั้ง 120 permutation อยู่ใน 0..10, ทิศการทาย A→B
+- คะแนนตามสูตรในแผน: 10 / 8 / 6 / 2, ครบทั้ง 120 permutation อยู่ใน 0..10, ทิศการทาย A→B
 - validation: permutation ผิดทุกแบบ, payload ผิดรูป, ชื่อเล่น 1–20 ตัว (นับแบบ grapheme ภาษาไทย), รหัสห้อง
 - reducer: บทบาทสลับทุกรอบ, คนผิดตาส่ง/กดไปต่อไม่ได้ (`NOT_YOUR_TURN`), ส่งครั้งเดียวเลื่อน phase, คะแนนเข้าคนทายเท่านั้น, retry commandId เดิมหลัง phase เปลี่ยน, payload ต่างถูก reject, คำสั่งจากรอบ/เกมเก่า, คู่หู offline, ห้องหมดอายุ, ออกจากห้อง, เกมเต็ม 6 รอบ, เต็ม 30 เสมอกัน, rematch
 - ความลับ: **non-interference** — สร้างสองโลกที่ต่างกันแค่คำตอบลับของคนวาง แล้วยืนยันว่ามุมมองของคนทายเหมือนกันทุกไบต์จนถึง REVEAL (ทั้งรอบที่ host วางและรอบที่แขกวาง)
@@ -291,15 +296,15 @@ HTTPS: Vercel ให้อัตโนมัติ ไม่มี cookie ที
 - join ชิงที่นั่งสุดท้ายพร้อมกัน, ส่งคำสั่งพร้อมกันสองคน, double click, retry หลังเฉลย, คำสั่งรอบเก่า
 - คู่หูหลุดจริง (ตัดการเชื่อมต่อ RTDB) → `PARTNER_OFFLINE` → ต่อกลับแล้วเล่นต่อ, เปิดสองแท็บ, **รีสตาร์ต server กลางเกม** แล้ว state/receipt ยังอยู่
 
-### ผลการรันจริง (21 ก.ย. 2026, Windows 11, Node 24.20.0)
+### ผลการรันจริง (Windows 11, Node 24.20.0)
 
-| คำสั่ง | ผล |
-| --- | --- |
-| `npm run typecheck` / `npm run lint` | ผ่าน ไม่มี error/warning |
-| `npm run test` | 139/139 ผ่าน (7 ไฟล์) |
-| `npm run check:questions` | 30 ข้อถูก schema, ค่าตั้งต้นมี 25 ข้อ |
-| `npm run test:e2e:emulator` | 18/18 ผ่าน กับ Firebase Local Emulator (รวม rules ของ `/live`) |
-| `npm run build` | ผ่าน |
+| คำสั่ง | ผล | รันล่าสุด |
+| --- | --- | --- |
+| `npm run typecheck` / `npm run lint` | ผ่าน ไม่มี error/warning | 23 ก.ย. 2026 |
+| `npm run test` | 178/178 ผ่าน (8 ไฟล์) | 23 ก.ย. 2026 |
+| `npm run build` | ผ่าน | 23 ก.ย. 2026 |
+| `npm run check:questions` | 30 ข้อถูก schema, ค่าตั้งต้นมี 25 ข้อ | 21 ก.ย. 2026 |
+| `npm run test:e2e:emulator` | 18/18 ผ่าน กับ Firebase Local Emulator (รวม rules ของ `/live`) | 21 ก.ย. 2026 |
 
 ตรวจเพิ่มด้วยสคริปต์ชั่วคราวผ่าน Chrome DevTools Protocol (ไม่ได้อยู่ในชุดเทสต์ที่ส่งมอบ) กับ emulator — Chrome สอง profile (1280 px กับ 360 px) เล่นผ่าน UI จริงแบบผลัดเทิร์นครบ 6 รอบ ผ่าน 59 รายการ:
 - คนทายเห็นหน้ารอพร้อมอนิเมชัน และไม่มีปุ่มส่ง · header บอกบทบาทถูกทุกรอบ
@@ -308,11 +313,11 @@ HTTPS: Vercel ให้อัตโนมัติ ไม่มี cookie ที
 - WebSocket frames ของคนทายก่อนเฉลยไม่มีคำตอบของคนวาง (และหลังเฉลยมีจริง จึงรู้ว่าการตรวจไวพอ)
 - หน้าเฉลยมีปุ่มไปต่อเฉพาะคนวาง · หน้าสรุปเต็ม 30 ตรงกันสองฝั่ง · ไม่มี error ใน console
 
-หน้า `/dev/preview` ทั้ง 7 หน้าของเกมที่ 360/768/1440 px ทั้งชื่อปกติและชื่อยาว 20 ตัว: ไม่ล้นแนวนอน ปุ่ม/ลิงก์ ≥ 44×44 px และเปิด reduced motion แล้วหน้ารอหยุดนิ่ง
+หน้า `/dev/preview` ทุกหน้าของเกมที่ 360/768/1440 px ทั้งชื่อปกติและชื่อยาว 20 ตัว: ไม่ล้นแนวนอน ปุ่ม/ลิงก์ ≥ 44×44 px และเปิด reduced motion แล้วหน้ารอหยุดนิ่ง
 
 ### หน้าตรวจ UI สำหรับนักพัฒนา
 
-`npm run dev` แล้วเปิด `/dev/preview?screen=lobby|self|waiting|guess|watch|reveal|reveal-guesser|results|join|full` (`waiting` = คนทายรอ, `watch` = คนวางดูคนทายเรียงสดด้วยข้อมูลจำลอง) (เติม `&long=1` เพื่อทดสอบชื่อยาว, `&skin=classic` เพื่อดูหน้าตาแบบเดิมก่อนธีมโต๊ะบอร์ดเกม, `&submit=fail` เพื่อจำลองส่งไม่สำเร็จ) — ใช้ reducer/projection ตัวจริงสร้าง state ไม่ต่อ backend และถูกปิดเป็น 404 ใน production
+`npm run dev` แล้วเปิด `/dev/preview?screen=lobby|lobby-empty|self|waiting|guess|watch|reveal|reveal-guesser|results|join|full` (`waiting` = คนทายรอ, `watch` = คนวางดูคนทายเรียงสดด้วยข้อมูลจำลอง) (เติม `&long=1` เพื่อทดสอบชื่อยาว, `&skin=classic` เพื่อดูหน้ากระดานแบบเดิมก่อนธีมโต๊ะบอร์ดเกม, `&submit=fail` เพื่อจำลองส่งไม่สำเร็จ) — ใช้ reducer/projection ตัวจริงสร้าง state ไม่ต่อ backend และถูกปิดเป็น 404 ใน production
 
 **ไม่มี browser-driven E2E ในชุดเทสต์** (ตกลงไว้ว่าไม่ใช้ Playwright) — การลากการ์ด, layout ที่ 360/768/1440 px, reduced motion และ screen reader ต้องตรวจด้วยมือ ดูรายการที่ควรตรวจใน [ข้อจำกัดที่ทราบ](#ข้อจำกัดที่ทราบ)
 
@@ -336,7 +341,7 @@ HTTPS: Vercel ให้อัตโนมัติ ไม่มี cookie ที
 - **ใช้ emulator แล้วได้ 401 ทุกคำสั่ง** — `.env.emulator` ต้องใช้ project `demo-heart-sync` (ตรงกับ `--project` ของ emulator) ห้ามใส่ค่าของ project จริงในไฟล์นี้
 - **ค่าของ project จริงไม่มีผล** — ต้องอยู่ใน `.env.local` Next.js ไม่อ่าน `.env.example`
 
-### Backlog (นอก MVP ตาม plan.md §3)
+### Backlog (นอก MVP)
 
 บัญชีถาวร, จับคู่คนแปลกหน้า, ผู้ชม, มากกว่า 2 คน, คำถามที่ผู้เล่นแต่งเอง, export รูปผลลัพธ์, เสียงประกอบและอีโมจิ realtime, browser E2E อัตโนมัติ
 
@@ -347,9 +352,10 @@ HTTPS: Vercel ให้อัตโนมัติ ไม่มี cookie ที
 ```text
 src/
   app/                      Next.js routes: หน้า / , /room/[code] และ /api/*
-  features/home/            หน้าแรก
-  features/room/            Lobby, จัดอันดับ, ทายใจ, เฉลย, ผลรวม
-  components/               RankList (dnd-kit), Avatar, Button, Banner, ConfirmDialog, ProfileFields
+  features/home/            หน้าแรก + ฉากโต๊ะตัวอย่าง (TableScene)
+  features/room/            Lobby, จัดอันดับ, รอคู่หู, ดูคนทายเรียงสด, เฉลย, สรุปคะแนน
+                            (หน้าละหนึ่ง .module.css: lobby / waiting / reveal / results)
+  components/               RankBoard + RankList (dnd-kit), Avatar, Button, Banner, ConfirmDialog, ProfileFields
   lib/game/                 กติกาล้วน (ห้าม import Firebase): reducer, scoring, projection, schemas
   lib/server/               firebase-admin, auth, transaction ของห้อง, rate limit
   lib/client/               firebase client, useRoom (realtime + resync), drafts
