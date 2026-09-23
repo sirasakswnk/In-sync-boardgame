@@ -41,6 +41,7 @@ scripts/
 plan.md
 AGENTS.md
 CLAUDE.md
+plan-*.md
 /scratch/
 /screenshots/
 *.mockup.html

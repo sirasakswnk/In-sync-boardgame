@@ -46,6 +46,11 @@ next-env.d.ts
 
 # การตั้งค่าเฉพาะเครื่อง
 .claude/
+# คำสั่งและแผนงานของ AI agent — ใช้ในเครื่อง ไม่ต้องขึ้น GitHub
+CLAUDE.md
+AGENTS.md
+plan.md
+plan-*.md
 .vscode/
 .idea/
 *.swp
