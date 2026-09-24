@@ -9,7 +9,10 @@ import {
   CATEGORY_LABELS,
   countQuestionsIn,
   getQuestionBank,
+  isSpecialOnly,
   ROUNDS_PER_GAME,
+  roundsFor,
+  SPECIAL_CATEGORY,
   type Category,
   type PlayerView,
   type PublicMember,
@@ -32,6 +35,7 @@ const CATEGORY_ICONS: Record<Category, string> = {
   hypothetical: '🔮',
   annoyances: '😤',
   relationships: '💞',
+  custom: '⭐',
 };
 
 const noSubscribe = () => () => undefined;
@@ -41,7 +45,12 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
   const partner = view.partner;
   const selected = view.settings.categories;
   const questionCount = countQuestionsIn(bank, selected);
-  const enough = questionCount >= ROUNDS_PER_GAME;
+  const special = isSpecialOnly(selected);
+  const rounds = roundsFor(bank, selected);
+  const enough = rounds > 0;
+  const notEnoughMessage = special
+    ? `ชุดพิเศษมี ${questionCount} ข้อ ต้องเป็นเลขคู่ตั้งแต่ 2 ข้อขึ้นไป ทั้งสองคนจึงได้ทายเท่ากัน`
+    : `หมวดที่เลือกมีคำถาม ${questionCount} ข้อ ต้องมีอย่างน้อย ${ROUNDS_PER_GAME} ข้อ`;
   const sending = cmds.state.kind === 'sending';
 
   // ค่าที่มีเฉพาะในเบราว์เซอร์: ใช้ server snapshot ตอน hydrate เพื่อไม่ให้ HTML ไม่ตรงกัน
@@ -49,8 +58,11 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
   const inviteUrl = useInviteUrl(view.code);
 
   function toggle(category: Category) {
-    if (!view.isHost) return;
-    const next = selected.includes(category) ? selected.filter((c) => c !== category) : [...selected, category];
+    let next = selected.includes(category) ? selected.filter((c) => c !== category) : [...selected, category];
+    // ชุดพิเศษเล่นแยกจากกองอื่น: เลือกชุดพิเศษ = ใช้กองเดียว, เลือกกองอื่น = ออกจากชุดพิเศษ
+    if (!selected.includes(category)) {
+      next = category === SPECIAL_CATEGORY ? [category] : next.filter((c) => c !== SPECIAL_CATEGORY);
+    }
     if (next.length === 0) return;
     // เรียงตามลำดับหมวดเดิมเพื่อให้ผลเหมือนกันทุกครั้ง
     const ordered = CATEGORIES.filter((c) => next.includes(c));
@@ -62,7 +74,7 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
     : !partnerOnline
       ? `${partner.displayName} ออฟไลน์อยู่`
       : !enough
-        ? `หมวดที่เลือกมีคำถาม ${questionCount} ข้อ ต้องมีอย่างน้อย ${ROUNDS_PER_GAME} ข้อ`
+        ? notEnoughMessage
         : !view.you.lobbyReady
           ? 'กด “ฉันพร้อมแล้ว” ก่อน'
           : !partner.lobbyReady
@@ -134,10 +146,10 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
         <div className={lobby.decksHead}>
           <h2 id="cat-title">เลือกกองคำถาม</h2>
           <span>
-            {questionCount} ข้อในกอง · เล่น {ROUNDS_PER_GAME} ข้อ
+            {special ? `เล่นครบ ${questionCount} ข้อตามลำดับ` : `${questionCount} ข้อในกอง · เล่น ${ROUNDS_PER_GAME} ข้อ`}
           </span>
         </div>
-        {!view.isHost && <p className={lobby.boardNote}>เจ้าของห้องเป็นคนเลือกกอง</p>}
+        <p className={lobby.boardNote}>ทั้งสองคนเลือกกองได้ · เจ้าของห้องเป็นคนกดเริ่มเกม</p>
         <div className={lobby.decks}>
           {CATEGORIES.map((c) => {
             const on = selected.includes(c);
@@ -147,7 +159,7 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
                 type="button"
                 className={`${lobby.deck} ${on ? lobby.deckOn : ''}`}
                 aria-pressed={on}
-                disabled={!view.isHost || sending || (on && selected.length === 1)}
+                disabled={sending || (on && selected.length === 1)}
                 onClick={() => toggle(c)}
               >
                 <span className={lobby.deckIcon} aria-hidden="true">
@@ -156,7 +168,8 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
                 <span className={lobby.deckText}>
                   <span className={lobby.deckName}>{CATEGORY_LABELS[c]}</span>
                   <small>
-                    {countQuestionsIn(bank, [c])} ข้อ{c === 'relationships' ? ' · เลือกเองถ้าอยาก' : ''}
+                    {countQuestionsIn(bank, [c])} ข้อ
+                    {c === 'relationships' ? ' · เลือกเองถ้าอยาก' : c === SPECIAL_CATEGORY ? ' · เล่นครบทุกข้อ' : ''}
                   </small>
                 </span>
                 {on && (
@@ -170,10 +183,10 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
         </div>
         {!enough && (
           <Banner tone="warn">
-            หมวดที่เลือกมีคำถาม {questionCount} ข้อ ต้องมีอย่างน้อย {ROUNDS_PER_GAME} ข้อ เลือกเพิ่มอีกหน่อยนะ
+            {special ? notEnoughMessage : `${notEnoughMessage} เลือกเพิ่มอีกหน่อยนะ`}
           </Banner>
         )}
-        {view.isHost && <p className={lobby.boardNote}>เปลี่ยนกองแล้ว ความพร้อมของทั้งคู่จะถูกรีเซ็ตเพื่อให้เห็นการตั้งค่าใหม่</p>}
+        <p className={lobby.boardNote}>เปลี่ยนกองแล้ว ความพร้อมของทั้งคู่จะถูกรีเซ็ตเพื่อให้เห็นการตั้งค่าใหม่</p>
 
         {/* ถาดไม้: ปุ่มพร้อม / เริ่มเกม */}
         <div className={lobby.tray}>

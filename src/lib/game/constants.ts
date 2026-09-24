@@ -21,10 +21,14 @@ export const CATEGORIES = [
   'hypothetical',
   'annoyances',
   'relationships',
+  'custom',
 ] as const;
 
-/** หมวดความสัมพันธ์เป็น opt-in ตั้งแต่ lobby */
-export const DEFAULT_CATEGORIES = CATEGORIES.filter((c) => c !== 'relationships');
+/** ชุดพิเศษ: เลือกกองนี้กองเดียวแล้วเล่นครบทุกข้อในกอง เรียงตามลำดับในไฟล์คำถาม */
+export const SPECIAL_CATEGORY = 'custom' satisfies (typeof CATEGORIES)[number];
+
+/** หมวดความสัมพันธ์และชุดพิเศษเป็น opt-in ตั้งแต่ lobby */
+export const DEFAULT_CATEGORIES = CATEGORIES.filter((c) => c !== 'relationships' && c !== SPECIAL_CATEGORY);
 
 export const CATEGORY_LABELS: Record<(typeof CATEGORIES)[number], string> = {
   daily: 'ชีวิตประจำวัน',
@@ -33,6 +37,7 @@ export const CATEGORY_LABELS: Record<(typeof CATEGORIES)[number], string> = {
   hypothetical: 'ถ้าเกิดว่า…',
   annoyances: 'เรื่องชวนหงุดหงิด',
   relationships: 'ความสัมพันธ์',
+  custom: 'ชุดพิเศษ',
 };
 
 export const PHASES = ['LOBBY', 'SELF_RANK', 'GUESS_RANK', 'REVEAL', 'RESULTS'] as const;

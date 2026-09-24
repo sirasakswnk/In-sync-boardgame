@@ -25,11 +25,19 @@ export function bothTrue(record: Record<Uid, boolean | unknown> | undefined, uid
   return uids.length === 2 && uids.every((u) => Boolean(record?.[u]));
 }
 
-/** REVEAL → SELF_RANK รอบถัดไป หรือ RESULTS เมื่อจบรอบสุดท้าย (plan.md §9.1) */
-export function phaseAfterReveal(game: Pick<GameState, 'roundIndex'>): 'SELF_RANK' | 'RESULTS' {
-  return game.roundIndex >= ROUNDS_PER_GAME - 1 ? 'RESULTS' : 'SELF_RANK';
+/**
+ * จำนวนรอบของเกมนี้ = จำนวนคำถามที่หยิบไว้ตอนเริ่มเกม (ปกติ 6, ชุดพิเศษเท่ากับจำนวนข้อในกอง)
+ * เกมที่ไม่มีรายการรอบ (ข้อมูลเก่าผิดรูป) ถือว่าเป็นเกม 6 รอบแบบเดิม
+ */
+export function roundCountOf(game: Pick<GameState, 'rounds'>): number {
+  return game.rounds.length || ROUNDS_PER_GAME;
 }
 
-export function isLastRound(roundIndex: number): boolean {
-  return roundIndex >= ROUNDS_PER_GAME - 1;
+/** REVEAL → SELF_RANK รอบถัดไป หรือ RESULTS เมื่อจบรอบสุดท้าย (plan.md §9.1) */
+export function phaseAfterReveal(game: Pick<GameState, 'roundIndex' | 'rounds'>): 'SELF_RANK' | 'RESULTS' {
+  return isLastRound(game) ? 'RESULTS' : 'SELF_RANK';
+}
+
+export function isLastRound(game: Pick<GameState, 'roundIndex' | 'rounds'>): boolean {
+  return game.roundIndex >= roundCountOf(game) - 1;
 }

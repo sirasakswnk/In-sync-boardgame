@@ -1,4 +1,4 @@
-import { ROUNDS_PER_GAME } from './constants';
+import { roundCountOf } from './phases';
 import { currentPhase, memberUids, partnerOf } from './phases';
 import type {
   MemberState,
@@ -97,7 +97,7 @@ function projectGame(room: RoomState, uid: Uid, partnerUid: Uid | null): PlayerG
     id: game.id,
     phase: game.phase,
     roundIndex: game.roundIndex,
-    roundCount: ROUNDS_PER_GAME,
+    roundCount: roundCountOf(game),
     question: structuredClone(round.question),
     role,
     guesserUid: round.guesserUid,

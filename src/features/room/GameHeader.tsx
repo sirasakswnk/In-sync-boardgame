@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Avatar } from '@/components/Avatar';
-import { ROUNDS_PER_GAME, type PlayerView } from '@/lib/game';
+import type { PlayerView } from '@/lib/game';
 import { RoomMenu } from './RoomMenu';
 import styles from './room.module.css';
 
@@ -13,7 +13,7 @@ type Props = { view: PlayerView; partnerOnline: boolean; onLeave: () => void };
 export function GameHeader({ view, partnerOnline, onLeave }: Props) {
   const game = view.game;
   const center =
-    !game ? null : view.phase === 'RESULTS' ? 'จบเกม' : `รอบ ${game.roundIndex + 1}/${ROUNDS_PER_GAME}`;
+    !game ? null : view.phase === 'RESULTS' ? 'จบเกม' : `รอบ ${game.roundIndex + 1}/${game.roundCount}`;
 
   return (
     <header className={styles.header}>

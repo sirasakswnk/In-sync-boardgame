@@ -1,4 +1,11 @@
-import { countQuestionsIn, DEFAULT_CATEGORIES, loadQuestionBank, ROUNDS_PER_GAME } from '../src/lib/game';
+import {
+  countQuestionsIn,
+  DEFAULT_CATEGORIES,
+  loadQuestionBank,
+  ROUNDS_PER_GAME,
+  roundsFor,
+  SPECIAL_CATEGORY,
+} from '../src/lib/game';
 
 const bank = loadQuestionBank();
 const byCategory = new Map<string, number>();
@@ -17,6 +24,14 @@ if (defaults < ROUNDS_PER_GAME) {
   process.exit(1);
 }
 
+// ชุดพิเศษเล่นครบทุกข้อ จำนวนข้อจึงต้องเป็นเลขคู่ให้สองคนได้ทายเท่ากัน
+const special = countQuestionsIn(bank, [SPECIAL_CATEGORY]);
+if (special > 0 && roundsFor(bank, [SPECIAL_CATEGORY]) === 0) {
+  console.error(`ชุดพิเศษมี ${special} ข้อ ต้องเป็นเลขคู่ตั้งแต่ 2 ข้อขึ้นไป`);
+  process.exit(1);
+}
+
 console.warn(`คลังคำถามถูกต้อง: ${bank.length} ข้อ`);
 for (const [category, count] of byCategory) console.warn(`  ${category.padEnd(14)} ${count}`);
-console.warn(`  ค่าตั้งต้น (ไม่รวม relationships): ${defaults} ข้อ`);
+console.warn(`  ค่าตั้งต้น (ไม่รวม relationships และชุดพิเศษ): ${defaults} ข้อ`);
+if (special > 0) console.warn(`  ชุดพิเศษ: เล่นครบ ${special} รอบตามลำดับในไฟล์`);

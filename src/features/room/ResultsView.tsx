@@ -4,8 +4,6 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import {
   bestRound,
   exactHits,
-  GUESSES_PER_PLAYER,
-  MAX_GAME_SCORE,
   MAX_ROUND_SCORE,
   OPTIONS_PER_ROUND,
   outcomeOf,
@@ -23,6 +21,9 @@ type Standing = 'winner' | 'tied' | 'behind';
 export function ResultsView({ view, partnerOnline, cmds }: Props) {
   const game = view.game!;
   const partnerName = view.partner?.displayName ?? 'คู่หู';
+  // ผลัดกันทายรอบละคน: เกม 6 รอบทายคนละ 3 ข้อ ชุดพิเศษ 8 รอบทายคนละ 4 ข้อ
+  const guessesEach = Math.floor(game.roundCount / 2);
+  const maxScore = guessesEach * MAX_ROUND_SCORE;
   const outcome = outcomeOf(game.totals);
   const history = game.history;
   // คุณเป็นคนทายในรอบที่คู่หูวาง และกลับกัน
@@ -87,7 +88,7 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
         <p className={styles.endLabel}>จบเกมแล้ว!</p>
         <h1>{headline}</h1>
         <p>
-          ผลัดกันทายคนละ {GUESSES_PER_PLAYER} รอบ · เต็มคนละ {MAX_GAME_SCORE} คะแนน
+          ผลัดกันทายคนละ {guessesEach} รอบ · เต็มคนละ {maxScore} คะแนน
         </p>
       </header>
 
@@ -111,6 +112,7 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
             score={game.totals.you}
             description={`คะแนนทายใจ${partnerName}`}
             standing={standing('you')}
+            maxScore={maxScore}
           />
           <PlayerCard
             suit="♠"
@@ -120,6 +122,7 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
             score={game.totals.partner}
             description={`คะแนนทายใจ${view.you.displayName}`}
             standing={standing('partner')}
+            maxScore={maxScore}
           />
         </div>
         <span className={styles.between} aria-hidden="true">
@@ -218,6 +221,7 @@ function PlayerCard({
   score,
   description,
   standing,
+  maxScore,
 }: {
   suit: string;
   name: string;
@@ -226,6 +230,7 @@ function PlayerCard({
   score: number;
   description: string;
   standing: Standing;
+  maxScore: number;
 }) {
   const shown = useCountUp(score);
   const avatar = AVATARS[avatarId] ?? AVATARS.cat;
@@ -251,9 +256,9 @@ function PlayerCard({
       </div>
       <h2 className={styles.playerName}>{name}</h2>
       <span className={styles.youLabel}>{role}</span>
-      <p className={styles.score} aria-label={`${score} จาก ${MAX_GAME_SCORE} คะแนน`}>
+      <p className={styles.score} aria-label={`${score} จาก ${maxScore} คะแนน`}>
         <span aria-hidden="true">{shown}</span>
-        <small aria-hidden="true">/{MAX_GAME_SCORE}</small>
+        <small aria-hidden="true">/{maxScore}</small>
       </p>
       <p className={styles.scoreDescription}>{description}</p>
       <span className={styles.resultBadge}>{BADGE[standing]}</span>

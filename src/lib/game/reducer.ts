@@ -208,7 +208,7 @@ function partnerOnline(room: RoomState, ctx: ReducerCtx): boolean {
 
 function onSettings(room: RoomState, ctx: ReducerCtx, categories: Category[]): HandlerOutcome {
   if (currentPhase(room) !== 'LOBBY') return err('WRONG_PHASE');
-  if (room.hostUid !== ctx.uid) return err('NOT_HOST');
+  // ทั้งสองคนเลือกกองได้ ส่วนการเริ่มเกมยังเป็นของ host (onStart)
   room.settings.categories = [...new Set(categories)];
   // เปลี่ยนหมวดแล้วต้องให้ทั้งคู่เห็นการตั้งค่าใหม่ก่อนเริ่ม (plan.md §4.1 ข้อ 6)
   for (const m of Object.values(room.members)) m.lobbyReady = false;
@@ -341,7 +341,7 @@ function onContinue(
 
   round.continued[ctx.uid] = true;
 
-  if (isLastRound(game.roundIndex)) {
+  if (isLastRound(game)) {
     game.phase = 'RESULTS';
     game.finishedAt = ctx.now;
   } else {

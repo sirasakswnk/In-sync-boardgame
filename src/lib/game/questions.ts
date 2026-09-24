@@ -1,5 +1,5 @@
 import rawBank from '@/data/questions.th.json';
-import { ROUNDS_PER_GAME } from './constants';
+import { ROUNDS_PER_GAME, SPECIAL_CATEGORY } from './constants';
 import { shuffle } from './rng';
 import { questionBankSchema } from './schemas';
 import type { Category, Question } from './types';
@@ -24,10 +24,26 @@ export function countQuestionsIn(bank: readonly Question[], categories: readonly
   return bank.filter((q) => wanted.has(q.category)).length;
 }
 
+/** เลือกชุดพิเศษเป็นกองเดียว — เล่นครบทุกข้อในกองตามลำดับในไฟล์ แทนการสุ่ม 6 ข้อ */
+export function isSpecialOnly(categories: readonly Category[]): boolean {
+  return categories.length === 1 && categories[0] === SPECIAL_CATEGORY;
+}
+
+/**
+ * จำนวนรอบที่เกมจะเล่นกับหมวดที่เลือก — 0 ถ้าเริ่มไม่ได้
+ * ชุดพิเศษต้องมีจำนวนข้อเป็นเลขคู่ ทั้งสองคนจึงได้ทายเท่ากัน
+ */
+export function roundsFor(bank: readonly Question[], categories: readonly Category[]): number {
+  const available = countQuestionsIn(bank, categories);
+  if (isSpecialOnly(categories)) return available >= 2 && available % 2 === 0 ? available : 0;
+  return available >= ROUNDS_PER_GAME ? ROUNDS_PER_GAME : 0;
+}
+
 /**
  * เลือกคำถามสำหรับเกมใหม่ (plan.md §4.1 ข้อ 7 และ §4.5)
  * - ไม่ซ้ำภายในเกม
  * - เลี่ยงคำถามจากเกมที่เพิ่งจบก่อน ถ้าคลังไม่พอจึงเติมจากข้อเดิม
+ * - ชุดพิเศษกองเดียว: ใช้ครบทุกข้อ เรียงตามไฟล์ ไม่สุ่ม (ดู roundsFor)
  * คืน null เมื่อหมวดที่เลือกมีไม่ถึง `count` ข้อ
  */
 export function pickQuestions(
@@ -39,6 +55,7 @@ export function pickQuestions(
 ): Question[] | null {
   const wanted = new Set(categories);
   const pool = bank.filter((q) => wanted.has(q.category));
+  if (isSpecialOnly(categories)) return roundsFor(bank, categories) > 0 ? pool : null;
   if (pool.length < count) return null;
 
   const avoid = new Set(avoidIds);

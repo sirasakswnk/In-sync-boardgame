@@ -163,7 +163,7 @@ npm run dev:emulator
 | `npm run test` | unit tests: กติกา คะแนน ความลับ reducer คลังคำถาม contrast — **ไม่ต้องมี Firebase** |
 | `npm run test:e2e` | integration: สองผู้เล่นคุยกับ Next.js server + RTDB จริงตาม `.env.local` (ถ้าไม่ได้ตั้งค่าจะถูกข้าม) |
 | `npm run test:e2e:emulator` | integration ชุดเดียวกัน โดยเปิด/ปิด emulator ให้อัตโนมัติ |
-| `npm run check:questions` | ตรวจคลังคำถาม 30 ข้อกับ schema |
+| `npm run check:questions` | ตรวจคลังคำถามกับ schema และจำนวนข้อของชุดพิเศษ |
 | `npm run rules:deploy` | deploy `database.rules.json` ขึ้น project จริง |
 
 ไม่มี `db:migrate` ตามที่แผนเดิมเขียนไว้ เพราะ RTDB ไม่มี schema/migration — สิ่งที่เทียบเท่าคือ `rules:deploy` และคลังคำถามอยู่ในซอร์ส ([src/data/questions.th.json](../src/data/questions.th.json)) ไม่ต้อง seed ลงฐานข้อมูล
@@ -269,9 +269,9 @@ HTTPS: Vercel ให้อัตโนมัติ ไม่มี cookie ที
 | คำสั่ง | ผล | รันล่าสุด |
 | --- | --- | --- |
 | `npm run typecheck` / `npm run lint` | ผ่าน ไม่มี error/warning | 24 ก.ย. 2026 |
-| `npm run test` | 180/180 ผ่าน (8 ไฟล์) | 24 ก.ย. 2026 |
+| `npm run test` | 187/187 ผ่าน (8 ไฟล์) | 24 ก.ย. 2026 |
 | `npm run build` | ผ่าน | 24 ก.ย. 2026 |
-| `npm run check:questions` | 30 ข้อถูก schema, ค่าตั้งต้นมี 25 ข้อ | 21 ก.ย. 2026 |
+| `npm run check:questions` | 38 ข้อถูก schema, ค่าตั้งต้นมี 25 ข้อ, ชุดพิเศษ 8 ข้อ | 24 ก.ย. 2026 |
 | `npm run test:e2e:emulator` | 20/20 ผ่าน กับ Firebase Local Emulator (รวม rules ของ `/live`) | 24 ก.ย. 2026 |
 
 ตรวจเพิ่มด้วยสคริปต์ชั่วคราวผ่าน Chrome DevTools Protocol (ไม่ได้อยู่ในชุดเทสต์ที่ส่งมอบ) กับ emulator — Chrome สอง profile (1280 px กับ 360 px) เล่นผ่าน UI จริงแบบผลัดเทิร์นครบ 6 รอบ ผ่าน 59 รายการ:
@@ -331,7 +331,7 @@ src/
   lib/game/                 กติกาล้วน (ห้าม import Firebase): reducer, scoring, projection, schemas
   lib/server/               firebase-admin, auth, transaction ของห้อง, rate limit
   lib/client/               firebase client, useRoom (realtime + resync), drafts
-  data/questions.th.json    คลังคำถาม 30 ข้อ
+  data/questions.th.json    คลังคำถาม (6 หมวด + ชุดพิเศษ)
 tests/unit/                 unit tests
 tests/integration/          สองผู้เล่นกับ backend จริง
 database.rules.json         security rules ของ RTDB (ส่วนสำคัญของความลับ)

@@ -1,6 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { joinRoom, MAX_GAME_SCORE, ROOM_TTL_MS, unjoinRoom, type Command } from '@/lib/game';
+import {
+  getQuestionBank,
+  joinRoom,
+  MAX_GAME_SCORE,
+  MAX_ROUND_SCORE,
+  projectRoomForPlayer,
+  ROOM_TTL_MS,
+  SPECIAL_CATEGORY,
+  unjoinRoom,
+  type Command,
+} from '@/lib/game';
 import { A, B, C, IDENTITY, REVERSED, Table, expectError, expectOk } from './helpers';
 
 describe('lobby', () => {
@@ -18,15 +28,33 @@ describe('lobby', () => {
     expect(new Set(t.game.rounds.map((r) => r.question.id)).size).toBe(6);
   });
 
-  it('เปลี่ยนหมวดแล้วรีเซ็ตความพร้อมของทั้งคู่ และเฉพาะ host เปลี่ยนได้', () => {
+  it('ทั้ง host และคนจอยเปลี่ยนหมวดได้ และทุกครั้งความพร้อมของทั้งคู่ถูกรีเซ็ต', () => {
     const t = new Table();
     expectOk(t.cmd(A, { kind: 'ready', ready: true }));
     expectOk(t.cmd(B, { kind: 'ready', ready: true }));
-    expectError(t.cmd(B, { kind: 'settings', categories: ['food'] }), 'NOT_HOST');
     expectOk(t.cmd(A, { kind: 'settings', categories: ['food', 'gaming'] }));
     expect(t.room.members[A]!.lobbyReady).toBe(false);
     expect(t.room.members[B]!.lobbyReady).toBe(false);
     expect(t.room.settings.categories).toEqual(['food', 'gaming']);
+
+    expectOk(t.cmd(A, { kind: 'ready', ready: true }));
+    expectOk(t.cmd(B, { kind: 'ready', ready: true }));
+    expectOk(t.cmd(B, { kind: 'settings', categories: ['daily', 'food'] }));
+    expect(t.room.members[A]!.lobbyReady).toBe(false);
+    expect(t.room.members[B]!.lobbyReady).toBe(false);
+    expect(t.room.settings.categories).toEqual(['daily', 'food']);
+  });
+
+  it('คนจอยเลือกชุดพิเศษได้ แต่ยังเป็น host ที่กดเริ่มเกม; คนนอกห้องเปลี่ยนหมวดไม่ได้', () => {
+    const t = new Table();
+    expectOk(t.cmd(B, { kind: 'settings', categories: [SPECIAL_CATEGORY] }));
+    expectError(t.cmd(C, { kind: 'settings', categories: ['food'] }), 'UNAUTHORIZED');
+    expectOk(t.cmd(A, { kind: 'ready', ready: true }));
+    expectOk(t.cmd(B, { kind: 'ready', ready: true }));
+    expectError(t.cmd(B, { kind: 'start' }), 'NOT_HOST');
+    expectOk(t.cmd(A, { kind: 'start' }));
+    const special = getQuestionBank().filter((q) => q.category === SPECIAL_CATEGORY);
+    expect(t.game.rounds.map((r) => r.question.id)).toEqual(special.map((q) => q.id));
   });
 
   it('หมวดที่เลือกมีคำถามไม่ถึง 6 ข้อ เริ่มไม่ได้', () => {
@@ -369,6 +397,48 @@ describe('stale commands (§13 ข้อ 13)', () => {
     expectError(stale, 'WRONG_PHASE');
     expect(t.game.id).toBe(newGameId);
     expect(t.game.phase).toBe('SELF_RANK');
+  });
+});
+
+describe('ชุดพิเศษ: เล่นครบทุกข้อในกองตามลำดับ', () => {
+  const special = getQuestionBank().filter((q) => q.category === SPECIAL_CATEGORY);
+
+  it('เล่นครบทุกข้อ เรียงตามไฟล์ สลับบทบาททุกรอบ และจบที่ RESULTS หลังรอบสุดท้ายเท่านั้น', () => {
+    const t = new Table();
+    expectOk(t.cmd(A, { kind: 'settings', categories: [SPECIAL_CATEGORY] }));
+    t.startGame();
+    expect(t.game.rounds.map((r) => r.question.id)).toEqual(special.map((q) => q.id));
+    expect(projectRoomForPlayer(t.room, A)!.game!.roundCount).toBe(special.length);
+
+    const guessedBy: Record<string, number> = { [A]: 0, [B]: 0 };
+    for (let i = 0; i < special.length; i++) {
+      expect(t.game.phase).toBe('SELF_RANK');
+      expect(t.game.roundIndex).toBe(i);
+      guessedBy[t.guesser]! += 1;
+      t.playRound({ self: REVERSED, guess: REVERSED });
+      t.advance();
+    }
+    expect(t.game.phase).toBe('RESULTS');
+    expect(t.game.finishedAt).not.toBeNull();
+
+    // สองคนทายเท่ากัน และคะแนนเต็มตามจำนวนรอบจริง (8 ข้อ → คนละ 4 รอบ → 40)
+    const each = special.length / 2;
+    expect(guessedBy).toEqual({ [A]: each, [B]: each });
+    expect(t.game.totals).toEqual({ [A]: each * MAX_ROUND_SCORE, [B]: each * MAX_ROUND_SCORE });
+  });
+
+  it('rematch ของชุดพิเศษได้ลำดับเดิมทุกครั้ง', () => {
+    const t = new Table();
+    expectOk(t.cmd(A, { kind: 'settings', categories: [SPECIAL_CATEGORY] }));
+    t.startGame();
+    for (let i = 0; i < special.length; i++) {
+      t.playRound({ self: IDENTITY, guess: IDENTITY });
+      t.advance();
+    }
+    expectOk(t.scoped(A, 'rematch'));
+    expectOk(t.scoped(B, 'rematch'));
+    t.startGame();
+    expect(t.game.rounds.map((r) => r.question.id)).toEqual(special.map((q) => q.id));
   });
 });
 

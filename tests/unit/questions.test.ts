@@ -10,15 +10,18 @@ import {
   pickQuestions,
   promptFor,
   ROUNDS_PER_GAME,
+  roundsFor,
+  SPECIAL_CATEGORY,
 } from '@/lib/game';
 
 const bank = getQuestionBank();
 
 describe('question bank (plan.md §7)', () => {
-  it('มี 30 ข้อ ID q01..q30 ไม่ซ้ำ', () => {
-    expect(bank).toHaveLength(30);
+  // ไม่ล็อกจำนวนข้อ: เพิ่ม/ลดคำถามได้ ขอแค่ ID เรียงต่อกัน q01, q02, … ไม่ข้าม ไม่ซ้ำ
+  it('ID เรียงต่อกัน q01..qN ไม่ซ้ำ', () => {
+    expect(bank.length).toBeGreaterThanOrEqual(30);
     expect(bank.map((q) => q.id)).toEqual(
-      Array.from({ length: 30 }, (_, i) => `q${String(i + 1).padStart(2, '0')}`),
+      Array.from({ length: bank.length }, (_, i) => `q${String(i + 1).padStart(2, '0')}`),
     );
   });
 
@@ -36,12 +39,13 @@ describe('question bank (plan.md §7)', () => {
         allOptionIds.add(o.id);
       });
     }
-    expect(allOptionIds.size).toBe(30 * OPTIONS_PER_ROUND);
+    expect(allOptionIds.size).toBe(bank.length * OPTIONS_PER_ROUND);
   });
 
-  it('ทุกหมวดมีคำถาม และค่าตั้งต้น (ไม่รวม relationships) มีอย่างน้อย 6 ข้อ', () => {
+  it('ทุกหมวดมีคำถาม และค่าตั้งต้น (ไม่รวม relationships และชุดพิเศษ) มีอย่างน้อย 6 ข้อ', () => {
     for (const c of CATEGORIES) expect(countQuestionsIn(bank, [c])).toBeGreaterThan(0);
     expect(DEFAULT_CATEGORIES).not.toContain('relationships');
+    expect(DEFAULT_CATEGORIES).not.toContain(SPECIAL_CATEGORY);
     expect(countQuestionsIn(bank, DEFAULT_CATEGORIES)).toBeGreaterThanOrEqual(ROUNDS_PER_GAME);
   });
 
@@ -57,6 +61,38 @@ describe('question bank (plan.md §7)', () => {
     const dupId = structuredClone(bank);
     dupId[1]!.id = dupId[0]!.id;
     expect(() => loadQuestionBank(dupId)).toThrow();
+  });
+});
+
+describe('ชุดพิเศษ', () => {
+  const special = bank.filter((q) => q.category === SPECIAL_CATEGORY);
+
+  it('จำนวนข้อเป็นเลขคู่ ทั้งสองคนได้ทายเท่ากัน', () => {
+    expect(special.length % 2).toBe(0);
+    expect(roundsFor(bank, [SPECIAL_CATEGORY])).toBe(special.length);
+  });
+
+  it('เลือกกองเดียว: ได้ครบทุกข้อ เรียงตามไฟล์ ไม่ขึ้นกับ seed หรือคำถามเกมก่อน', () => {
+    const ids = special.map((q) => q.id);
+    expect(pickQuestions(bank, [SPECIAL_CATEGORY], [], createRng('a'))!.map((q) => q.id)).toEqual(ids);
+    expect(pickQuestions(bank, [SPECIAL_CATEGORY], ids, createRng('b'))!.map((q) => q.id)).toEqual(ids);
+  });
+
+  it('ปนกับกองอื่น: กลับเป็นเกม 6 ข้อแบบสุ่ม', () => {
+    const cats = ['food', SPECIAL_CATEGORY] as const;
+    expect(roundsFor(bank, cats)).toBe(ROUNDS_PER_GAME);
+    expect(pickQuestions(bank, cats, [], createRng('s1'))).toHaveLength(ROUNDS_PER_GAME);
+  });
+
+  it('จำนวนข้อเป็นเลขคี่: เริ่มเกมไม่ได้', () => {
+    const odd = bank.filter((q) => q.id !== special[0]!.id);
+    expect(roundsFor(odd, [SPECIAL_CATEGORY])).toBe(0);
+    expect(pickQuestions(odd, [SPECIAL_CATEGORY], [], createRng('s1'))).toBeNull();
+  });
+
+  it('รอบปกติยังเป็น 6 รอบ', () => {
+    expect(roundsFor(bank, DEFAULT_CATEGORIES)).toBe(ROUNDS_PER_GAME);
+    expect(roundsFor(bank, ['food'])).toBe(0);
   });
 });
 
