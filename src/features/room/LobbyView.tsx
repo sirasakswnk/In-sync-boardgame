@@ -70,7 +70,7 @@ export function LobbyView({ view, partnerOnline, cmds }: Props) {
             : null;
 
   return (
-    <div className={styles.stack}>
+    <div className={lobby.page}>
       {/* ไพ่เชิญ: รหัสห้องเป็นตัวต่อไม้ กดทั้งแถวเพื่อคัดลอก */}
       <section className={lobby.invite} aria-labelledby="invite-title">
         <p id="invite-title" className={lobby.inviteTitle}>

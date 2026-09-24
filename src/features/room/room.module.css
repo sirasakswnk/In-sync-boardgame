@@ -921,3 +921,38 @@
   color: var(--gold);
 }
 
+
+/* ---------- จอกว้าง (≥1000px): ขยายพื้นที่และจัดกลางแบบเดียวกับหน้าแรก ---------- */
+
+@media (min-width: 1000px) {
+  .header {
+    padding: 0 24px 8px;
+  }
+
+  .headerTop,
+  .players {
+    width: min(1100px, 100%);
+  }
+
+  .main {
+    width: min(1100px, 100%);
+    padding: 18px 24px 28px;
+  }
+
+  /* หน้าจัดอันดับ: คำถามอยู่ซ้าย กระดานอยู่ขวา */
+  .compactStage {
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    align-items: start;
+    column-gap: 28px;
+  }
+
+  .compactStage > .questionCard {
+    position: sticky;
+    top: 104px;
+  }
+
+  .actionBar {
+    max-width: 520px;
+    margin-inline: auto;
+  }
+}

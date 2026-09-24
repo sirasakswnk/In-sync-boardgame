@@ -726,3 +726,59 @@
     transition: none;
   }
 }
+
+/* จอเล็ก: กล่องคอลัมน์ขวาไม่มีผล ลูกทั้งหมดเรียงต่อกันเหมือนเดิม */
+.colSide {
+  display: contents;
+}
+
+/* ---------- จอกว้าง: ผลคะแนนอยู่ซ้าย บันทึกกับประวัติรอบอยู่ขวา ---------- */
+
+@media (min-width: 1000px) {
+  .page {
+    display: grid;
+    grid-template-columns: minmax(360px, 470px) minmax(0, 1fr);
+    /* แถวสุดท้ายเป็น 1fr ไว้ซับความสูงของคอลัมน์ขวา */
+    grid-template-rows: min-content min-content min-content min-content 1fr;
+    grid-template-areas:
+      'hero side'
+      'scene side'
+      'caption side'
+      'action side'
+      '. side'
+      'bottom bottom';
+    column-gap: 36px;
+    width: min(1060px, 100%);
+  }
+
+  .hero {
+    grid-area: hero;
+  }
+
+  .scene {
+    grid-area: scene;
+  }
+
+  .afterScore {
+    grid-area: caption;
+  }
+
+  .playAction {
+    grid-area: action;
+    align-self: start;
+  }
+
+  .colSide {
+    display: flex;
+    grid-area: side;
+    flex-direction: column;
+  }
+
+  .sectionLabel {
+    margin: 10px 0 16px;
+  }
+
+  .bottom {
+    grid-area: bottom;
+  }
+}

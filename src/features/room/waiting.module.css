@@ -562,3 +562,57 @@
     transform: none;
   }
 }
+
+/* จอเล็ก: กล่องคอลัมน์ขวาไม่มีผล ลูกทั้งสามเรียงต่อกันเหมือนเดิม */
+.colSide {
+  display: contents;
+}
+
+/* ---------- จอกว้าง: คำถามกับใบโน้ตอยู่ซ้าย ฝั่งคู่หูอยู่ขวา ---------- */
+
+@media (min-width: 1000px) {
+  .page {
+    display: grid;
+    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+    /* แถวสุดท้ายเป็น 1fr ไว้ซับความสูงส่วนเกินของคอลัมน์ขวา ฝั่งซ้ายจึงไม่ถูกดันห่าง */
+    grid-template-rows: min-content min-content 1fr;
+    grid-template-areas:
+      'question side'
+      'note side'
+      '. side'
+      'bottom bottom';
+    column-gap: 32px;
+    width: min(980px, 100%);
+    padding-top: 6px;
+  }
+
+  .colSide {
+    display: flex;
+    grid-area: side;
+    flex-direction: column;
+  }
+
+  .question {
+    grid-area: question;
+    align-self: start;
+  }
+
+  .note {
+    grid-area: note;
+    align-self: start;
+    margin-top: 18px;
+  }
+
+  .stage {
+    padding-top: 6px;
+  }
+
+  .turnPath {
+    margin-bottom: 0;
+  }
+
+  .bottom {
+    grid-area: bottom;
+    margin-top: 24px;
+  }
+}

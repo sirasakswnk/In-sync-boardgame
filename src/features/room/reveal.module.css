@@ -591,3 +591,54 @@
     transform: none;
   }
 }
+
+/* ---------- จอกว้าง: คำถาม คะแนน และบันทึกอยู่ซ้าย กองไพ่เฉลยอยู่ขวา ---------- */
+
+@media (min-width: 1000px) {
+  .page {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    /* แถวสุดท้ายเป็น 1fr ไว้ซับความสูงของกองไพ่ ฝั่งซ้ายจึงเรียงชิดบน */
+    grid-template-rows: min-content min-content min-content min-content 1fr;
+    column-gap: 34px;
+    width: min(1020px, 100%);
+  }
+
+  .question,
+  .scoreStage,
+  .note,
+  .totals {
+    grid-column: 1;
+  }
+
+  /* กองไพ่เฉลยอยู่ขวา ยาวเท่าไรก็ได้ */
+  .cardsSection {
+    grid-column: 2;
+    grid-row: 1 / -2;
+  }
+
+  .scoreStage {
+    justify-content: flex-start;
+    min-height: 0;
+    padding: 18px 0 10px;
+  }
+
+  .note {
+    margin: 10px 0 16px;
+  }
+
+  .totals {
+    justify-content: flex-start;
+  }
+
+  .actionBar {
+    grid-column: 1 / -1;
+    max-width: 420px;
+    margin-inline: 0;
+  }
+
+  .legend {
+    justify-content: flex-start;
+    margin-bottom: 0;
+  }
+}

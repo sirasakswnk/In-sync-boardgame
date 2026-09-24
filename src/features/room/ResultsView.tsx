@@ -144,36 +144,38 @@ export function ResultsView({ view, partnerOnline, cmds }: Props) {
         </p>
       </section>
 
-      <h2 className={styles.sectionLabel}>เก็บโมเมนต์จากเกมนี้</h2>
-      <section className={styles.note} aria-labelledby="note-heading">
-        <span className={styles.tape} aria-hidden="true" />
-        <h2 className={styles.noteHeading} id="note-heading">
-          <span aria-hidden="true">✎</span> บันทึกความรู้ใจ
-        </h2>
-        {yourBest && <BestRow title="รอบที่คุณทายแม่นที่สุด" round={yourBest} />}
-        {partnerBest && <BestRow title={`รอบที่${partnerName}ทายแม่นที่สุด`} round={partnerBest} />}
-        <div className={styles.hits}>
-          <span>ทายอันดับตรงเป๊ะ</span>
-          <span>
-            <strong>คุณ {yourHits}</strong> · {partnerName} {partnerHits} ใบ
-          </span>
-        </div>
-        <p className={styles.hitsOf}>จากไพ่ที่แต่ละคนทาย {youGuessed.length * OPTIONS_PER_ROUND} ใบ</p>
-      </section>
+      <div className={styles.colSide}>
+        <h2 className={styles.sectionLabel}>เก็บโมเมนต์จากเกมนี้</h2>
+        <section className={styles.note} aria-labelledby="note-heading">
+          <span className={styles.tape} aria-hidden="true" />
+          <h2 className={styles.noteHeading} id="note-heading">
+            <span aria-hidden="true">✎</span> บันทึกความรู้ใจ
+          </h2>
+          {yourBest && <BestRow title="รอบที่คุณทายแม่นที่สุด" round={yourBest} />}
+          {partnerBest && <BestRow title={`รอบที่${partnerName}ทายแม่นที่สุด`} round={partnerBest} />}
+          <div className={styles.hits}>
+            <span>ทายอันดับตรงเป๊ะ</span>
+            <span>
+              <strong>คุณ {yourHits}</strong> · {partnerName} {partnerHits} ใบ
+            </span>
+          </div>
+          <p className={styles.hitsOf}>จากไพ่ที่แต่ละคนทาย {youGuessed.length * OPTIONS_PER_ROUND} ใบ</p>
+        </section>
 
-      <details className={styles.history}>
-        <summary>
-          <span aria-hidden="true">▤</span> ย้อนดูเฉลยทุกข้อ <small>{history.length} รอบ</small>
-          <span className={styles.chevron} aria-hidden="true">
-            ⌄
-          </span>
-        </summary>
-        <div className={styles.historyList}>
-          {history.map((r) => (
-            <HistoryRound key={r.roundIndex} round={r} partnerName={partnerName} />
-          ))}
-        </div>
-      </details>
+        <details className={styles.history}>
+          <summary>
+            <span aria-hidden="true">▤</span> ย้อนดูเฉลยทุกข้อ <small>{history.length} รอบ</small>
+            <span className={styles.chevron} aria-hidden="true">
+              ⌄
+            </span>
+          </summary>
+          <div className={styles.historyList}>
+            {history.map((r) => (
+              <HistoryRound key={r.roundIndex} round={r} partnerName={partnerName} />
+            ))}
+          </div>
+        </details>
+      </div>
 
       <footer className={styles.bottom}>
         คะแนนจากคำทายในเกมนี้

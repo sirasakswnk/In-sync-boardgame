@@ -62,53 +62,55 @@ export function WaitingTurn({ view, partnerOnline }: Props) {
         </p>
       </section>
 
-      <section className={styles.stage} aria-label="สถานะคู่หู">
-        <div className={styles.seatLabel}>อีกฝั่งของโต๊ะ</div>
-        <div className={styles.portraitWrap}>
-          <div className={styles.portrait} style={{ background: avatar.bg }} aria-hidden="true">
-            {avatar.emoji}
+      <div className={styles.colSide}>
+        <section className={styles.stage} aria-label="สถานะคู่หู">
+          <div className={styles.seatLabel}>อีกฝั่งของโต๊ะ</div>
+          <div className={styles.portraitWrap}>
+            <div className={styles.portrait} style={{ background: avatar.bg }} aria-hidden="true">
+              {avatar.emoji}
+            </div>
+            <span className={styles.connectionDot} aria-hidden="true" />
+            <span className={styles.thinking} aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
           </div>
-          <span className={styles.connectionDot} aria-hidden="true" />
-          <span className={styles.thinking} aria-hidden="true">
-            <i />
-            <i />
-            <i />
+          <p className={styles.partnerTitle}>{status.partner}</p>
+
+          {/* โต๊ะฝั่งคู่หู: หลังไพ่ 5 ใบขยับไปมาเหมือนกำลังจัดลำดับ */}
+          <div className={styles.tableArt} aria-hidden="true">
+            <div className={styles.tableRing} />
+            <span className={styles.tinyStar}>✧</span>
+            <span className={`${styles.tinyStar} ${styles.tinyStarRight}`}>✦</span>
+            <div className={styles.cards}>
+              <CardBack />
+              <CardBack />
+              <CardBack />
+              <CardBack />
+              <CardBack />
+            </div>
+          </div>
+        </section>
+
+        <div className={styles.status} role="status" aria-live="polite" aria-atomic="true">
+          <h2>{status.title}</h2>
+          <p>{status.detail}</p>
+        </div>
+
+        <div className={styles.turnPath} aria-label="ลำดับการเล่น">
+          <span className={`${styles.step} ${styles.current}`} aria-current="step">
+            <b>1</b>คู่หูจัดไพ่
+          </span>
+          <span className={styles.line} aria-hidden="true" />
+          <span className={styles.step}>
+            <b>2</b>คุณทาย
+          </span>
+          <span className={styles.line} aria-hidden="true" />
+          <span className={styles.step}>
+            <b>3</b>ดูเฉลย
           </span>
         </div>
-        <p className={styles.partnerTitle}>{status.partner}</p>
-
-        {/* โต๊ะฝั่งคู่หู: หลังไพ่ 5 ใบขยับไปมาเหมือนกำลังจัดลำดับ */}
-        <div className={styles.tableArt} aria-hidden="true">
-          <div className={styles.tableRing} />
-          <span className={styles.tinyStar}>✧</span>
-          <span className={`${styles.tinyStar} ${styles.tinyStarRight}`}>✦</span>
-          <div className={styles.cards}>
-            <CardBack />
-            <CardBack />
-            <CardBack />
-            <CardBack />
-            <CardBack />
-          </div>
-        </div>
-      </section>
-
-      <div className={styles.status} role="status" aria-live="polite" aria-atomic="true">
-        <h2>{status.title}</h2>
-        <p>{status.detail}</p>
-      </div>
-
-      <div className={styles.turnPath} aria-label="ลำดับการเล่น">
-        <span className={`${styles.step} ${styles.current}`} aria-current="step">
-          <b>1</b>คู่หูจัดไพ่
-        </span>
-        <span className={styles.line} aria-hidden="true" />
-        <span className={styles.step}>
-          <b>2</b>คุณทาย
-        </span>
-        <span className={styles.line} aria-hidden="true" />
-        <span className={styles.step}>
-          <b>3</b>ดูเฉลย
-        </span>
       </div>
 
       <section className={styles.note} aria-labelledby="wait-note">

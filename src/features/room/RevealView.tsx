@@ -132,7 +132,7 @@ function RoundReveal({ view, partnerOnline, cmds }: Props) {
         </div>
       </section>
 
-      <section aria-label="เฉลยคำตอบ">
+      <section className={styles.cardsSection} aria-label="เฉลยคำตอบ">
         <div className={styles.deckLabel}>
           <span>อันดับจริงของ{subject}</span>
           <small>

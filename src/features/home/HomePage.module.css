@@ -40,6 +40,89 @@
   }
 }
 
+/* จอกว้าง: แยกเป็นสองคอลัมน์ — ฝั่งซ้ายคือโต๊ะตัวอย่าง ฝั่งขวาคือแผ่นกระดานเตรียมตัว
+   เริ่มที่ 1000px เพราะแคบกว่านี้คอลัมน์ซ้ายจะบีบจนบับเบิลคำพูดทับการ์ดคำถาม */
+@media (min-width: 1000px) {
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    padding: 32px 0;
+  }
+
+  .home {
+    /* จอกว้างให้กระดานสูงเท่าเนื้อหา แล้ววางกลางจอ ไม่ต้องยืดเต็มความสูง
+       (width: 100% จำเป็น เพราะ margin: auto ของมือถือทำให้กล่องหดตามเนื้อหา) */
+    width: 100%;
+    min-height: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
+    grid-template-areas:
+      'top top'
+      'brand setup'
+      'scene setup'
+      'caption setup'
+      'steps setup'
+      'foot foot';
+    align-content: start;
+    column-gap: clamp(28px, 4vw, 56px);
+    max-width: 1060px;
+    padding: 0 clamp(24px, 3vw, 40px) 30px;
+  }
+
+  .topline {
+    grid-area: top;
+    padding-top: 18px;
+  }
+
+  .brand {
+    grid-area: brand;
+    padding-top: 18px;
+  }
+
+  .brand h1 {
+    font-size: clamp(54px, 4.6vw, 64px);
+  }
+
+  .eyebrow {
+    font-size: 13px;
+  }
+
+  .tagline {
+    font-size: 14px;
+  }
+
+  .scene {
+    grid-area: scene;
+    width: 100%;
+    max-width: 470px;
+    margin-inline: auto;
+  }
+
+  .sceneCaption {
+    grid-area: caption;
+    font-size: 12px;
+  }
+
+  .steps {
+    grid-area: steps;
+    margin-bottom: 0;
+    font-size: 13px;
+  }
+
+  /* กระดานอยู่กลางความสูงของคอลัมน์ซ้าย */
+  .setup {
+    grid-area: setup;
+    align-self: center;
+    padding: 28px 26px 26px;
+  }
+
+  .footerBrand {
+    grid-area: foot;
+    margin-top: 30px;
+  }
+}
+
 /* ---------- topline ---------- */
 
 .topline {

@@ -1,5 +1,10 @@
 /* หน้า Lobby ธีมโต๊ะบอร์ดเกม — ไพ่เชิญ, ที่นั่งรอบโต๊ะ, กองคำถาม, ถาดไม้ */
 
+.page {
+  display: grid;
+  gap: 14px;
+}
+
 /* ---------- ไพ่เชิญ ---------- */
 
 .invite {
@@ -434,5 +439,40 @@
   .deckOn,
   .stampReady {
     transform: none;
+  }
+}
+
+/* ---------- จอกว้าง: ไพ่เชิญกับที่นั่งอยู่ซ้าย กองคำถามอยู่ขวา ---------- */
+
+@media (min-width: 1000px) {
+  .page {
+    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+    grid-template-areas:
+      'invite decks'
+      'seats decks';
+    align-content: start;
+    column-gap: 28px;
+  }
+
+  .invite {
+    grid-area: invite;
+  }
+
+  .table {
+    grid-area: seats;
+  }
+
+  .decksBoard {
+    grid-area: decks;
+    align-self: start;
+  }
+
+  .decks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* ถาดไม้อยู่ท้ายกระดานฝั่งขวา ไม่ต้องกินเต็มความกว้างจอ */
+  .tray {
+    margin-inline: -12px;
   }
 }
