@@ -1,26 +1,53 @@
 'use client';
 
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import { messageFor, type ClientErrorCode } from '@/lib/client/api';
-import styles from './room.module.css';
+import styles from './screen.module.css';
 
-export function RoomLoading() {
+/** โครงหน้าเดี่ยวนอกโต๊ะเกม: ผ้าเขียว ชื่อเกมด้านบน และ MADE FOR TWO ด้านล่าง */
+function Screen({ children, busy }: { children: ReactNode; busy?: boolean }) {
   return (
-    <main className={styles.center} aria-busy="true">
-      <div className={styles.loadingCards} aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
-      <p role="status">กำลังเปิดห้อง…</p>
-    </main>
+    <div className={styles.page}>
+      <main className={styles.wrap} aria-busy={busy || undefined}>
+        <p className={styles.brand}>
+          <span aria-hidden="true">♥♥</span>IN SYNC
+        </p>
+        {children}
+        <p className={styles.footer}>
+          MADE FOR TWO <span aria-hidden="true">♥</span>
+        </p>
+      </main>
+    </div>
   );
 }
 
-const TITLES: Partial<Record<ClientErrorCode, { emoji: string; title: string }>> = {
-  ROOM_NOT_FOUND: { emoji: '🔍', title: 'ไม่พบห้องนี้' },
+export function RoomLoading() {
+  return (
+    <Screen busy>
+      <div className={styles.loading}>
+        {/* หลังไพ่ 3 ใบกางออกแล้วหุบ ระหว่างรอเปิดห้อง */}
+        <div className={styles.deck} aria-hidden="true">
+          <span className={styles.deckCard}>♥</span>
+          <span className={styles.deckCard}>♥</span>
+          <span className={styles.deckCard}>♥</span>
+        </div>
+        <p className={styles.loadingText} role="status">
+          กำลังเปิดห้อง…
+        </p>
+      </div>
+    </Screen>
+  );
+}
+
+/**
+ * หัวข้อของแต่ละกรณี — `message` ใช้แทนข้อความกลางเมื่อข้อความกลางขึ้นต้นซ้ำกับหัวข้อ
+ * (ข้อความกลางยังใช้ตามเดิมในที่อื่น เช่น banner ตอนใส่รหัสห้องผิดบนหน้าแรก)
+ */
+const TITLES: Partial<Record<ClientErrorCode, { emoji: string; title: string; message?: string }>> = {
+  ROOM_NOT_FOUND: { emoji: '🔍', title: 'ไม่พบห้องนี้', message: 'ลองตรวจรหัสอีกครั้ง หรือสร้างห้องใหม่' },
   ROOM_FULL: { emoji: '🙅', title: 'ห้องนี้เต็มแล้ว' },
-  ROOM_CLOSED: { emoji: '🚪', title: 'ห้องนี้ปิดแล้ว' },
+  ROOM_CLOSED: { emoji: '🚪', title: 'ห้องนี้ปิดแล้ว', message: 'เล่นต่อในห้องนี้ไม่ได้แล้ว กลับหน้าหลักเพื่อสร้างห้องใหม่' },
   UNAUTHORIZED: { emoji: '🔒', title: 'เข้าห้องนี้ไม่ได้' },
   NETWORK: { emoji: '📡', title: 'เชื่อมต่อไม่ได้' },
   TIMEOUT: { emoji: '⏳', title: 'เซิร์ฟเวอร์ตอบช้า' },
@@ -40,25 +67,28 @@ export function RoomProblem({
 }) {
   const preset = code ? TITLES[code] : undefined;
   const retryable = code === 'NETWORK' || code === 'TIMEOUT' || code === 'INTERNAL';
+  const text = message ?? preset?.message ?? (code ? messageFor(code) : '');
   return (
-    <main className={styles.center}>
-      <div className={styles.problem}>
-        <span className={styles.problemEmoji} aria-hidden="true">
+    <Screen>
+      <section className={styles.board} aria-labelledby="problem-title">
+        <span className={styles.medal} aria-hidden="true">
           {emoji ?? preset?.emoji ?? '😵'}
         </span>
-        <h1>{title ?? preset?.title ?? 'เกิดข้อผิดพลาด'}</h1>
-        <p>{message ?? (code ? messageFor(code) : '')}</p>
-        <div className={styles.problemActions}>
+        <h1 id="problem-title" className={styles.title}>
+          {title ?? preset?.title ?? 'เกิดข้อผิดพลาด'}
+        </h1>
+        {text && <p className={styles.message}>{text}</p>}
+        <div className={styles.actions}>
           {retryable && (
-            <button type="button" className={styles.linkButton} onClick={() => window.location.reload()}>
+            <button type="button" className={styles.paper} onClick={() => window.location.reload()}>
               ลองใหม่
             </button>
           )}
-          <Link href="/" className={styles.homeLink}>
+          <Link href="/" className={styles.primary}>
             กลับหน้าหลัก
           </Link>
         </div>
-      </div>
-    </main>
+      </section>
+    </Screen>
   );
 }

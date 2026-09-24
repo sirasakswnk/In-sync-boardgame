@@ -1,0 +1,312 @@
+/* หน้าเดี่ยวนอกโต๊ะเกม ธีมโต๊ะบอร์ดเกม — คำเชิญ, กำลังโหลด, ห้องมีปัญหา: ผ้าเขียว + แผ่นกระดานครีม (ชุดเดียวกับหน้าแรก) */
+
+.page {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(ellipse at 50% 22%, #386653 0, transparent 55%),
+    repeating-linear-gradient(92deg, #ffffff02 0 1px, transparent 1px 4px),
+    #234d40;
+  color: #fff9ec;
+}
+
+.wrap {
+  display: grid;
+  gap: 18px;
+  width: min(440px, 100%);
+}
+
+.brand {
+  margin: 0;
+  color: #dfd6b9;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2.4px;
+  text-align: center;
+}
+
+.brand span {
+  margin-right: 8px;
+  color: #eb8b83;
+  font-size: 16px;
+  letter-spacing: -5px;
+}
+
+/* แผ่นกระดานครีม แบบเดียวกับ "เตรียมตัวเข้าโต๊ะ" บนหน้าแรก */
+.board {
+  display: grid;
+  gap: 14px;
+  padding: 26px 21px 22px;
+  border: 1px solid #decaa3;
+  border-radius: 23px;
+  outline: 3px solid #cab38b;
+  outline-offset: -7px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 12px, #a98b4220 12px 13px),
+    #fff8e8;
+  box-shadow:
+    0 8px 0 #153b30,
+    0 13px 25px #0d2d2533;
+  color: #292c3d;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #95574e;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.title {
+  margin: -6px 0 0;
+  color: #292c3d;
+  font-size: clamp(24px, 7vw, 28px);
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.codeLabel {
+  margin: 0;
+  color: #7a6d5f;
+  font-size: 12px;
+  text-align: center;
+}
+
+.tiles {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: -6px 0 0;
+}
+
+.tile {
+  display: grid;
+  place-items: center;
+  width: clamp(36px, 11vw, 44px);
+  height: clamp(44px, 13vw, 52px);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f6e3bf 0%, #e7c992 100%);
+  box-shadow:
+    inset 0 -3px 0 rgb(90 58 36 / 22%),
+    0 2px 0 #b89262,
+    0 4px 8px rgb(0 0 0 / 14%);
+  color: #3f2817;
+  font-size: clamp(1.25rem, 6vw, 1.6rem);
+  font-weight: 800;
+}
+
+.sub {
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed #d9c7a6;
+  color: #7a6d5f;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* ปุ่มหลักชมพูนูน แบบเดียวกับ "สร้างห้องใหม่" */
+.primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 4px;
+  border: 1px solid #d5766f;
+  border-top: 2px solid #f9beb1;
+  border-radius: 13px;
+  background: #e98c82;
+  box-shadow: 0 4px 0 #b56a60;
+  color: #452e35;
+  font-size: 15px;
+  font-weight: 800;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.primary:not(:disabled):active {
+  box-shadow: 0 1px 0 #b56a60;
+  transform: translateY(3px);
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.back {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  color: #7a6d5f;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.bannerLink {
+  font-weight: 700;
+}
+
+.footer {
+  margin: 0;
+  color: #cbd2bb;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.footer span {
+  color: #f1aaa0;
+  letter-spacing: 0;
+}
+
+/* ---------- กำลังโหลด: หลังไพ่ 3 ใบกางเป็นพัดแล้วหุบ ---------- */
+
+.loading {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  padding: 12px 0 8px;
+}
+
+.deck {
+  position: relative;
+  width: 150px;
+  height: 104px;
+}
+
+.deckCard {
+  position: absolute;
+  top: 0;
+  left: 46px;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 84px;
+  border: 3px solid #fbf4dc;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 5px, #fff9e614 5px 6px),
+    #c8b9d1;
+  box-shadow:
+    0 3px 0 #9b8a96,
+    0 9px 12px #112f3066;
+  color: #fcf3da;
+  font-size: 22px;
+  animation: fan 1.4s ease-in-out infinite alternate;
+}
+
+.deckCard:nth-child(1) {
+  --r: -16deg;
+  --x: -40px;
+  background-color: #d89b8b;
+}
+
+.deckCard:nth-child(2) {
+  z-index: 1;
+}
+
+.deckCard:nth-child(3) {
+  --r: 16deg;
+  --x: 40px;
+  background-color: #d99c8c;
+}
+
+@keyframes fan {
+  to {
+    transform: translateX(var(--x, 0)) rotate(var(--r, 0));
+  }
+}
+
+.loadingText {
+  margin: 0;
+  color: #fff2d6;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* ---------- ห้องมีปัญหา: เหรียญทอง + ข้อความ + ปุ่ม ---------- */
+
+.medal {
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border: 4px solid #f4dca0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 33% 22%, #fff0b8, #e8c675 62%, #cc9e4a);
+  box-shadow:
+    0 4px 0 #a3793a,
+    0 9px 16px #113a2d40;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.message {
+  margin: -4px 0 0;
+  color: #7a6d5f;
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ปุ่มรองเป็นกระดาษขาวนูน */
+.paper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1.5px #d8c39c,
+    0 3px 0 #d8c39c;
+  color: #292c3d;
+  font-size: 15px;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+
+.paper:active {
+  box-shadow: 0 0 0 1.5px #d8c39c;
+  transform: translateY(3px);
+}
+
+a.primary {
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary,
+  .paper {
+    transition: none;
+  }
+
+  .deckCard {
+    animation: none;
+    transform: translateX(var(--x, 0)) rotate(var(--r, 0));
+  }
+}

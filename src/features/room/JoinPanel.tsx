@@ -3,11 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Banner } from '@/components/Banner';
-import { Button } from '@/components/Button';
 import { ProfileFields, type ProfileDraft } from '@/components/ProfileFields';
 import { displayNameSchema, type AvatarId } from '@/lib/game';
 import { api, ApiFailure } from '@/lib/client/api';
-import styles from './room.module.css';
+import styles from './screen.module.css';
 
 type ProfileResponse = { ok: true; profile: { displayName: string; avatarId: AvatarId } | null };
 
@@ -48,31 +47,54 @@ export function JoinPanel({ code, onJoin }: { code: string; onJoin: () => Promis
   }
 
   return (
-    <main className={styles.center}>
-      <section className={styles.joinCard}>
-        <p className={styles.eyebrow}>คุณได้รับคำเชิญ 💌</p>
-        <h1 className={styles.joinTitle}>
-          เข้าห้อง <span className={styles.bigCode}>{code}</span>
-        </h1>
-        <p className={styles.muted}>ตั้งชื่อเล่นและเลือกอวาตาร์ แล้วมาดูกันว่าใจตรงกันแค่ไหน</p>
+    <div className={styles.page}>
+      <main className={styles.wrap}>
+        <p className={styles.brand}>
+          <span aria-hidden="true">♥♥</span>IN SYNC
+        </p>
 
-        {error && (
-          <Banner tone="error" live>
-            {error}{' '}
-            {activeCode && (
-              <Link href={`/room/${activeCode}`}>ไปที่ห้อง {activeCode}</Link>
-            )}
-          </Banner>
-        )}
+        <section className={styles.board} aria-labelledby="join-title">
+          <p className={styles.eyebrow}>คุณได้รับคำเชิญ 💌</p>
+          <h1 id="join-title" className={styles.title}>
+            มาร่วมโต๊ะด้วยกันไหม?
+          </h1>
 
-        <ProfileFields value={profile} onChange={setProfile} error={nameError} disabled={busy} />
-        <Button block onClick={join} loading={busy}>
-          เข้าร่วมห้อง
-        </Button>
-        <Link href="/" className={styles.homeLinkPlain}>
-          กลับหน้าหลัก
-        </Link>
-      </section>
-    </main>
+          <p className={styles.codeLabel}>รหัสห้อง</p>
+          {/* รหัสเป็นตัวต่อไม้ทีละตัว — โปรแกรมอ่านหน้าจออ่านทีละตัวจากข้อความซ่อน */}
+          <p className={styles.tiles}>
+            <span className="visually-hidden">{code.split('').join(' ')}</span>
+            {code.split('').map((ch, i) => (
+              <span key={i} className={styles.tile} aria-hidden="true">
+                {ch}
+              </span>
+            ))}
+          </p>
+          <p className={styles.sub}>ตั้งชื่อเล่นและเลือกอวาตาร์ แล้วมาดูกันว่าใจตรงกันแค่ไหน</p>
+
+          {error && (
+            <Banner tone="error" live>
+              {error}{' '}
+              {activeCode && (
+                <Link href={`/room/${activeCode}`} className={styles.bannerLink}>
+                  ไปที่ห้อง {activeCode}
+                </Link>
+              )}
+            </Banner>
+          )}
+
+          <ProfileFields value={profile} onChange={setProfile} error={nameError} disabled={busy} look="table" />
+          <button type="button" className={styles.primary} onClick={join} disabled={busy} aria-busy={busy || undefined}>
+            {busy ? 'กำลังเข้าห้อง…' : 'เข้าร่วมห้อง'}
+          </button>
+          <Link href="/" className={styles.back}>
+            ← กลับหน้าหลัก
+          </Link>
+        </section>
+
+        <p className={styles.footer}>
+          MADE FOR TWO <span aria-hidden="true">♥</span>
+        </p>
+      </main>
+    </div>
   );
 }

@@ -42,7 +42,7 @@ export function RoomScreen({ code }: { code: string }) {
     );
   }
   if (status.kind === 'join') return <JoinPanel code={code} onJoin={room.join} />;
-  if (status.kind === 'error') return <RoomProblem code={status.code} message={status.message} />;
+  if (status.kind === 'error') return <RoomProblem code={status.code} />;
   if (!view || !uid) return <RoomLoading />;
   if (view.status === 'CLOSED') return <RoomProblem code="ROOM_CLOSED" />;
 
