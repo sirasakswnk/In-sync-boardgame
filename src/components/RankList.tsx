@@ -1,5 +1,6 @@
 'use client';
 
+import { OptionIcon } from '@/components/OptionIcon';
 import {
   closestCenter,
   DndContext,
@@ -220,7 +221,7 @@ function SortableCard({ option, index, count, reducedMotion, onMove, registerBut
             aria-label={`ลาก “${option.label}” (ตอนนี้อันดับ ${index + 1})`}
           >
             <span className={styles.icon} aria-hidden="true">
-              {option.icon ?? '•'}
+              <OptionIcon icon={option.icon} fallback="•" />
             </span>
             <span className={styles.grip} aria-hidden="true" />
           </button>
@@ -277,7 +278,9 @@ function CardFace({
     <div className={`${styles.card} ${lifted ? styles.lifted : ''} ${locked ? styles.locked : ''}`}>
       {handle ?? (
         <span className={styles.handleStatic} aria-hidden="true">
-          <span className={styles.icon}>{option.icon ?? '•'}</span>
+          <span className={styles.icon}>
+            <OptionIcon icon={option.icon} fallback="•" />
+          </span>
           {lifted && <span className={styles.grip} />}
         </span>
       )}

@@ -1,5 +1,6 @@
 'use client';
 
+import { OptionIcon } from '@/components/OptionIcon';
 import { useEffect, useState } from 'react';
 import { MAX_ROUND_SCORE, promptFor, type PlayerView } from '@/lib/game';
 import type { useCommands } from '@/lib/client/useRoom';
@@ -85,12 +86,12 @@ function RoundReveal({ view, partnerOnline, cmds }: Props) {
   const byId = new Map(reveal.question.options.map((o) => [o.id, o]));
 
   const scoreTitle = !done
-    ? 'มาดูกันว่าทายตรงแค่ไหน'
+    ? 'ไหนดูหน่อยสิทายเก่งแค่ไหน'
     : reveal.score.score === MAX_ROUND_SCORE
       ? 'ใจตรงกันทุกใบเลย!'
       : reveal.score.score >= 8
-        ? 'ทายใจแม่นเลยนะ!'
-        : 'ได้รู้จักกันอีกนิดแล้ว';
+        ? 'ทายเก่งอยู่เหมือนกันน้าา'
+        : 'อาจจะยังน้าา';
 
   function next() {
     void cmds.send(key, {
@@ -157,7 +158,7 @@ function RoundReveal({ view, partnerOnline, cmds }: Props) {
                       {entry.actualIndex + 1}
                     </span>
                     <span className={styles.optionIcon} aria-hidden="true">
-                      {option.icon ?? '🃏'}
+                      <OptionIcon icon={option.icon} />
                     </span>
                     <div>
                       <h3 className={styles.optionName}>{option.label}</h3>

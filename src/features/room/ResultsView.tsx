@@ -1,5 +1,6 @@
 'use client';
 
+import { OptionIcon } from '@/components/OptionIcon';
 import { useEffect, useState, type CSSProperties } from 'react';
 import {
   bestRound,
@@ -317,7 +318,10 @@ function HistoryRound({ round, partnerName }: { round: RevealRound; partnerName:
               return (
                 <tr key={entry.optionId}>
                   <td>
-                    <span aria-hidden="true">{option.icon}</span> {option.label}
+                    <span aria-hidden="true">
+                      <OptionIcon icon={option.icon} />
+                    </span>{' '}
+                    {option.label}
                   </td>
                   <td>{entry.guessedIndex + 1}</td>
                   <td>{entry.actualIndex + 1}</td>

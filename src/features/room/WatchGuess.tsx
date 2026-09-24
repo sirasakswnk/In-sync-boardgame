@@ -1,5 +1,6 @@
 'use client';
 
+import { OptionIcon } from '@/components/OptionIcon';
 import { useEffect, useState, type CSSProperties } from 'react';
 import { promptFor, type PlayerView, type QuestionOption } from '@/lib/game';
 import { PodiumView } from '@/components/RankBoard';
@@ -87,7 +88,10 @@ export function WatchGuess({ view, partnerOnline, demoOrder, variant = 'list' }:
               {mine.map((id, i) => (
                 <li key={id}>
                   <span className={styles.mineRank}>{i + 1}</span>
-                  <span aria-hidden="true">{byId.get(id)?.icon}</span> {byId.get(id)?.label}
+                  <span aria-hidden="true">
+                    <OptionIcon icon={byId.get(id)?.icon} />
+                  </span>{' '}
+                  {byId.get(id)?.label}
                 </li>
               ))}
             </ol>
@@ -122,7 +126,9 @@ export function WatchGuess({ view, partnerOnline, demoOrder, variant = 'list' }:
             {liveOrder ? (
               liveOrder.map((id, i) => (
                 <div key={id} className={styles.miniCard} style={{ '--i': i } as CSSProperties} aria-hidden="true">
-                  <span className={styles.miniIcon}>{byId.get(id)!.icon}</span>
+                  <span className={styles.miniIcon}>
+                    <OptionIcon icon={byId.get(id)!.icon} />
+                  </span>
                   <span>{byId.get(id)!.label}</span>
                 </div>
               ))
@@ -164,7 +170,7 @@ function MiniCard({ option }: { option: QuestionOption | undefined }) {
   return (
     <div className={styles.miniCard}>
       <span className={styles.miniIcon} aria-hidden="true">
-        {option.icon}
+        <OptionIcon icon={option.icon} />
       </span>
       <span>{option.label}</span>
     </div>

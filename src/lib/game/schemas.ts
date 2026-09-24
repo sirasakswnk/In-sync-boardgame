@@ -87,6 +87,9 @@ export const commandSchema = z.discriminatedUnion('kind', [
 // Question bank
 // ---------------------------------------------------------------------------
 
+/** path ของรูปไอคอนวาดเอง — ไฟล์จริงอยู่ที่ public/icons/ */
+export const ICON_PATH = /^\/icons\/[A-Za-z0-9_-]+\.(svg|webp|png)$/;
+
 export const questionSchema = z
   .object({
     id: z.string().regex(/^q\d{2,}$/),
@@ -106,7 +109,15 @@ export const questionSchema = z
         z.object({
           id: z.string().regex(/^q\d{2,}-o\d+$/),
           label: z.string().trim().min(1),
-          icon: z.string().min(1).optional(),
+          /** อีโมจิ หรือรูปวาดเองใน public/icons เช่น "/icons/q31-o1.svg" (.svg .webp .png) */
+          icon: z
+            .string()
+            .min(1)
+            .refine(
+              (v) => !v.startsWith('/') || ICON_PATH.test(v),
+              'รูปไอคอนต้องอยู่ใน /icons/ ชื่อเป็นตัวอังกฤษ ตัวเลข - หรือ _ และเป็นไฟล์ .svg .webp หรือ .png',
+            )
+            .optional(),
         }),
       )
       .length(OPTIONS_PER_ROUND),

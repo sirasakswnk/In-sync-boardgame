@@ -1,0 +1,11 @@
+/* รูปไอคอนตัวเลือก: ใหญ่เท่าอีโมจิในกล่องเดียวกัน (อีโมจิกินที่ราว 1.2em) */
+.img {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  object-fit: contain;
+  vertical-align: -0.22em;
+  /* ไม่ให้เบราว์เซอร์ลากรูปแทนการลากไพ่ */
+  pointer-events: none;
+  user-select: none;
+}

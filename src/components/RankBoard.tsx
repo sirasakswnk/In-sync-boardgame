@@ -1,5 +1,6 @@
 'use client';
 
+import { OptionIcon } from '@/components/OptionIcon';
 import {
   DndContext,
   DragOverlay,
@@ -390,7 +391,7 @@ export function CardFace({ option, small, lifted }: { option: QuestionOption; sm
   return (
     <span className={`${styles.card} ${small ? styles.small : ''} ${lifted ? styles.lifted : ''}`}>
       <span className={styles.art} aria-hidden="true">
-        {option.icon ?? '🃏'}
+        <OptionIcon icon={option.icon} />
       </span>
       <span className={styles.name}>{option.label}</span>
     </span>

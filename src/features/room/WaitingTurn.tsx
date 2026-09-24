@@ -1,5 +1,6 @@
 'use client';
 
+import { OptionIcon } from '@/components/OptionIcon';
 import { promptFor, type PlayerView } from '@/lib/game';
 import { AVATARS } from '@/lib/ui/avatars';
 import styles from './waiting.module.css';
@@ -125,7 +126,9 @@ export function WaitingTurn({ view, partnerOnline }: Props) {
         <ul className={styles.options} aria-label="ตัวเลือกของคำถาม ยังไม่ได้เรียงอันดับ">
           {game.question.options.map((o) => (
             <li key={o.id}>
-              <span aria-hidden="true">{o.icon ?? '🃏'}</span>
+              <span aria-hidden="true">
+                <OptionIcon icon={o.icon} />
+              </span>
               {o.label}
             </li>
           ))}

@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CATEGORIES,
@@ -5,6 +7,7 @@ import {
   createRng,
   DEFAULT_CATEGORIES,
   getQuestionBank,
+  ICON_PATH,
   loadQuestionBank,
   OPTIONS_PER_ROUND,
   pickQuestions,
@@ -47,6 +50,25 @@ describe('question bank (plan.md §7)', () => {
     expect(DEFAULT_CATEGORIES).not.toContain('relationships');
     expect(DEFAULT_CATEGORIES).not.toContain(SPECIAL_CATEGORY);
     expect(countQuestionsIn(bank, DEFAULT_CATEGORIES)).toBeGreaterThanOrEqual(ROUNDS_PER_GAME);
+  });
+
+  it('ไอคอนเป็นอีโมจิ หรือรูปใน /icons/ ที่มีไฟล์อยู่จริงใน public/', () => {
+    for (const o of bank.flatMap((q) => q.options)) {
+      if (!o.icon?.startsWith('/')) continue;
+      expect(o.icon).toMatch(ICON_PATH);
+      expect(existsSync(join('public', o.icon)), `${o.id}: ไม่พบไฟล์ public${o.icon}`).toBe(true);
+    }
+  });
+
+  it('validator ปฏิเสธ path รูปไอคอนที่ผิดรูป', () => {
+    for (const bad of ['/q01.svg', '/icons/รูป.svg', '/icons/a.jpg', '/icons/../x.svg', '/icons/a b.png']) {
+      const broken = structuredClone(bank);
+      broken[0]!.options[0]!.icon = bad;
+      expect(() => loadQuestionBank(broken), bad).toThrow();
+    }
+    const ok = structuredClone(bank);
+    ok[0]!.options[0]!.icon = '/icons/q01-o1.svg';
+    expect(() => loadQuestionBank(ok)).not.toThrow();
   });
 
   it('validator ล้มเมื่อข้อมูลผิด', () => {

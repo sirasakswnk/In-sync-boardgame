@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   countQuestionsIn,
   DEFAULT_CATEGORIES,
@@ -15,6 +17,16 @@ for (const q of bank) byCategory.set(q.category, (byCategory.get(q.category) ?? 
 const noPersonal = bank.filter((q) => !q.personal).map((q) => q.id);
 if (noPersonal.length) {
   console.error(`คำถามที่ยังไม่มี personal: ${noPersonal.join(', ')}`);
+  process.exit(1);
+}
+
+// รูปไอคอนวาดเองต้องมีไฟล์อยู่จริงใน public/ ไม่อย่างนั้นการ์ดจะขึ้นรูปเสีย
+const missingIcons = bank
+  .flatMap((q) => q.options)
+  .filter((o) => o.icon?.startsWith('/') && !existsSync(join('public', o.icon)))
+  .map((o) => `${o.id} → ${o.icon}`);
+if (missingIcons.length) {
+  console.error(`ไม่พบไฟล์รูปไอคอน:\n  ${missingIcons.join('\n  ')}`);
   process.exit(1);
 }
 
