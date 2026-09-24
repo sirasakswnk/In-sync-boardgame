@@ -184,7 +184,7 @@ function RoundReveal({ view, partnerOnline, cmds }: Props) {
 
         <div className={styles.revealActions}>
           {done ? (
-            <p className={styles.completeLabel}>เปิดครบแล้ว · รู้จักกันอีกนิดแล้วนะ</p>
+            <p className={styles.completeLabel}>เปิดครบแล้ว · ไหนขอดูหน่อยสิ๊</p>
           ) : (
             <button type="button" className={styles.skip} onClick={() => setShown(total)}>
               เปิดทั้งหมด →
