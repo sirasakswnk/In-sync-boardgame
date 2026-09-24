@@ -121,6 +121,20 @@ export function joinRoom(room: RoomState, who: Profile & { uid: Uid }, now: numb
   return { ok: true, room: next, seat, changed: true };
 }
 
+/**
+ * ถอนคนที่เพิ่งเข้าห้องออก — ใช้เมื่อผู้เล่นแพ้การจอง "ห้องปัจจุบัน" ให้คำขออื่นที่มาพร้อมกัน
+ * ทำได้เฉพาะใน LOBBY และไม่ใช่ host: คนเพิ่งเข้ายังไม่พร้อม เกมจึงยังเริ่มไม่ได้ในช่วงนี้
+ */
+export function unjoinRoom(room: RoomState, uid: Uid, now: number): RoomState | null {
+  if (!room.members[uid] || uid === room.hostUid || currentPhase(room) !== 'LOBBY') return null;
+  const next = structuredClone(room);
+  delete next.members[uid];
+  delete next.receipts[uid];
+  next.revision += 1;
+  touch(next, now);
+  return next;
+}
+
 function touch(room: RoomState, now: number): void {
   room.lastActivityAt = now;
   room.expiresAt = now + ROOM_TTL_MS;

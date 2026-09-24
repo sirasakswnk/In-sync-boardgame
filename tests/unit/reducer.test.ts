@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { joinRoom, MAX_GAME_SCORE, ROOM_TTL_MS, type Command } from '@/lib/game';
+import { joinRoom, MAX_GAME_SCORE, ROOM_TTL_MS, unjoinRoom, type Command } from '@/lib/game';
 import { A, B, C, IDENTITY, REVERSED, Table, expectError, expectOk } from './helpers';
 
 describe('lobby', () => {
@@ -71,6 +71,31 @@ describe('join (plan.md §10.2)', () => {
       expect(again.seat).toBe(1);
       expect(Object.keys(again.room.members)).toHaveLength(2);
     }
+  });
+
+  it('ถอนคนที่เพิ่งเข้าได้เฉพาะใน lobby และที่นั่งว่างให้คนอื่นเข้าต่อได้', () => {
+    const t = new Table();
+    const rev = t.room.revision;
+    const next = unjoinRoom(t.room, B, t.now);
+    expect(next).not.toBeNull();
+    expect(next!.members[B]).toBeUndefined();
+    expect(next!.revision).toBe(rev + 1);
+    // ฟังก์ชันบริสุทธิ์: ห้องเดิมไม่ถูกแก้
+    expect(t.room.members[B]).toBeDefined();
+
+    const third = joinRoom(next!, { uid: C, displayName: 'แครอล', avatarId: 'fox' }, t.now);
+    expect(third.ok).toBe(true);
+  });
+
+  it('ถอน host, คนนอกห้อง หรือถอนระหว่างเกมไม่ได้', () => {
+    const t = new Table();
+    expect(unjoinRoom(t.room, A, t.now)).toBeNull();
+    expect(unjoinRoom(t.room, C, t.now)).toBeNull();
+
+    expectOk(t.cmd(A, { kind: 'ready', ready: true }));
+    expectOk(t.cmd(B, { kind: 'ready', ready: true }));
+    expectOk(t.cmd(A, { kind: 'start' }));
+    expect(unjoinRoom(t.room, B, t.now)).toBeNull();
   });
 
   it('ห้องที่ปิดแล้วเข้าไม่ได้', () => {

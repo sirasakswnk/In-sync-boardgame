@@ -25,7 +25,7 @@ import styles from './room.module.css';
 export function RoomScreen({ code }: { code: string }) {
   const router = useRouter();
   const room = useRoom(code);
-  const cmds = useCommands(code, room.applyView, room.refresh);
+  const cmds = useCommands(code, room.applyView, room.resync);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [leaving, setLeaving] = useState(false);
 

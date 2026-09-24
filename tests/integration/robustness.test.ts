@@ -55,6 +55,59 @@ describe.skipIf(!firebaseReady())('ความทนทาน: พร้อม�
     expect(snap.partner).not.toBeNull();
   });
 
+  it('คนเดียวสร้างห้องสองครั้งพร้อมกัน ได้ห้องเดียว และห้องที่แพ้ไม่ค้างในฐานข้อมูล', async () => {
+    const p = await newPlayer('สร้างซ้อน');
+    const { adminDb } = await import('@/lib/server/admin');
+    // push key ขึ้นต้นด้วยเวลา: ห้องที่สร้างหลังจากนี้มี key มากกว่านี้เสมอ (ใช้แทน query ที่ต้องมี index)
+    // ถอยไป 1 นาทีเผื่อเวลาของสอง process ไม่ตรงกัน — ไฟล์เทสต์รันทีละไฟล์ จึงไม่มีห้องแปลกปลอมปน
+    const since = pushKeyPrefix(Date.now() - 60_000);
+    const [r1, r2] = await Promise.all([p.call('POST', '/api/rooms'), p.call('POST', '/api/rooms')]);
+    expect([r1.status, r2.status].sort()).toEqual([201, 409]);
+    const win = r1.status === 201 ? r1 : r2;
+    const lose = win === r1 ? r2 : r1;
+    expect(lose.body.code).toBe('ALREADY_IN_ROOM');
+    const roomId = String(win.body.roomId);
+    janitor.trackRoom(roomId, String(win.body.code));
+
+    expect((await adminDb().ref(`users/${p.uid}/activeRoomId`).get()).val()).toBe(roomId);
+
+    // ห้องของคำขอที่แพ้ถูกลบทิ้ง: เหลือห้องที่ผู้เล่นคนนี้เป็น host ห้องเดียว
+    const recent = ((await adminDb().ref('rooms').orderByKey().startAt(since).get()).val() ?? {}) as Record<
+      string,
+      { state?: { hostUid?: string } }
+    >;
+    const hosted = Object.keys(recent).filter((id) => recent[id]!.state?.hostUid === p.uid);
+    expect(hosted).toEqual([roomId]);
+
+    // และไม่มีรหัสห้องค้างชี้ไปห้องที่ถูกลบ
+    const codes = ((await adminDb().ref('roomCodes').get()).val() ?? {}) as Record<string, string>;
+    const dangling = Object.values(codes).filter((id) => id >= since && !recent[id]);
+    expect(dangling).toEqual([]);
+  });
+
+  it('คนเดียว join สองห้องพร้อมกัน ได้ห้องเดียว และไม่เหลือชื่อค้างในอีกห้อง', async () => {
+    const ownerX = await newPlayer('เจ้าของเอ็กซ์');
+    const ownerY = await newPlayer('เจ้าของวาย');
+    const p = await newPlayer('เข้าซ้อน');
+    const x = await ownerX.createRoom();
+    const y = await ownerY.createRoom();
+    janitor.trackRoom(x.roomId, x.code);
+    janitor.trackRoom(y.roomId, y.code);
+
+    const [rx, ry] = await Promise.all([p.join(x.code), p.join(y.code)]);
+    expect([rx.status, ry.status].sort()).toEqual([200, 409]);
+    const [won, lost, wonOwner, lostOwner] = rx.status === 200 ? [x, y, ownerX, ownerY] : [y, x, ownerY, ownerX];
+    expect((rx.status === 200 ? ry : rx).body.code).toBe('ALREADY_IN_ROOM');
+
+    expect(viewOf(await wonOwner.snapshot(won.code)).partner).not.toBeNull();
+    expect(viewOf(await lostOwner.snapshot(lost.code)).partner).toBeNull();
+    const { adminDb } = await import('@/lib/server/admin');
+    expect((await adminDb().ref(`users/${p.uid}/activeRoomId`).get()).val()).toBe(won.roomId);
+
+    // เข้าห้องเดิมซ้ำยังได้ตามปกติ
+    expect((await p.join(won.code)).status).toBe(200);
+  });
+
   it('เตรียมห้องหลักสำหรับเทสต์ถัดไป', async () => {
     const room = await host.createRoom();
     code = room.code;
@@ -237,3 +290,14 @@ describe.skipIf(!firebaseReady())('ความทนทาน: พร้อม�
     expect(res.body.code).toBe('PROFILE_LOCKED');
   });
 });
+
+/** 8 ตัวแรกของ push key ของ RTDB คือเวลา (ms) เข้ารหัสฐาน 64 เรียงตามตัวอักษรได้ */
+function pushKeyPrefix(ms: number): string {
+  const chars = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  let out = '';
+  for (let i = 0; i < 8; i++) {
+    out = chars[ms % 64] + out;
+    ms = Math.floor(ms / 64);
+  }
+  return out;
+}

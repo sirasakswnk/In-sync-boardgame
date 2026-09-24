@@ -14,6 +14,7 @@ import {
   projectRoomForPlayer,
   ROOM_CODE_ALPHABET,
   ROOM_CODE_LENGTH,
+  unjoinRoom,
   type Ack,
   type AvatarId,
   type Command,
@@ -103,14 +104,63 @@ export async function loadRoomState(roomId: string): Promise<RoomState | null> {
   return normalizeRoomState(snap.val());
 }
 
+/** ห้องยังเล่นได้และ uid ยังเป็นสมาชิกอยู่ — เงื่อนไขของ "ห้องปัจจุบัน" */
+function isLiveMembership(room: RoomState | null, uid: string, now: number): room is RoomState {
+  return Boolean(room && room.status !== 'CLOSED' && !isExpired(room, now) && room.members[uid]);
+}
+
 /** ห้องที่ผู้ใช้ยังผูกอยู่และยังเล่นได้ — ห้องที่ปิดหรือหมดอายุไม่นับ */
 export async function activeRoomOf(uid: string): Promise<RoomState | null> {
   const snap = await db().ref(`users/${uid}/activeRoomId`).get();
   const roomId = snap.val() as string | null;
   if (!roomId) return null;
   const room = await loadRoomState(roomId);
-  if (!room || room.status === 'CLOSED' || isExpired(room, Date.now()) || !room.members[uid]) return null;
-  return room;
+  return isLiveMembership(room, uid, Date.now()) ? room : null;
+}
+
+/**
+ * จอง "ห้องปัจจุบัน" ของผู้ใช้แบบ compare-and-swap — จุดตัดสินเดียวของกติกาหนึ่งคนหนึ่งห้อง
+ * ผู้เรียกต้องเขียนห้องให้มีอยู่จริงก่อน คำขออื่นที่แข่งกันจึงเห็นห้องที่ชนะเป็นห้องที่ยังเล่นได้เสมอ
+ * - ค่าเดิมชี้ห้องที่ยังเล่นได้ → ALREADY_IN_ROOM
+ * - ค่าเปลี่ยนระหว่างทาง (อีกคำขอจองไปก่อน) → transaction abort แล้วตรวจห้องที่ชนะจาก snapshot ของมัน
+ *   (ห้ามอ่านซ้ำด้วย get(): ใน process เดียวกัน SDK คืนค่าเก่าจาก cache ทำให้วนไม่จบ)
+ * - cur === null ครั้งแรกอาจมาจาก cache ของ SDK: เขียนไปก่อน ถ้า server มีค่าอื่นจะเรียกซ้ำด้วยค่าจริง
+ */
+async function claimActiveRoom(uid: string, roomId: string): Promise<void> {
+  const ref = db().ref(`users/${uid}/activeRoomId`);
+  let old = ((await ref.get()).val() as string | null) ?? null;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    if (old && old !== roomId) {
+      const room = await loadRoomState(old);
+      if (isLiveMembership(room, uid, Date.now())) {
+        throw new ApiError('ALREADY_IN_ROOM', 409, { activeCode: room.code });
+      }
+    }
+    const expected = old;
+    const res = await ref.transaction(
+      (cur: string | null) => (cur === null || cur === expected || cur === roomId ? roomId : undefined),
+      undefined,
+      false,
+    );
+    const current = (res.snapshot.val() as string | null) ?? null;
+    if (res.committed && current === roomId) return;
+    old = current;
+  }
+  throw new ApiError('INTERNAL', 503);
+}
+
+/** คืนรหัสห้อง เฉพาะเมื่อรหัสยังชี้มาที่ห้องของเรา (null จาก cache → เขียน null ให้ server ตรวจค่าจริง) */
+async function releaseCode(code: string, roomId: string): Promise<void> {
+  await db()
+    .ref(`roomCodes/${code}`)
+    .transaction((cur: string | null) => (cur === null || cur === roomId ? null : undefined), undefined, false)
+    .catch(() => undefined);
+}
+
+/** ทิ้งห้องที่เพิ่งสร้างแต่จองเป็นห้องปัจจุบันไม่สำเร็จ — รหัสยังไม่เคยส่งให้ใคร จึงไม่มีคนอื่นอยู่ในห้อง */
+async function discardRoom(roomId: string, code: string): Promise<void> {
+  await db().ref(`rooms/${roomId}`).remove().catch(() => undefined);
+  await releaseCode(code, roomId);
 }
 
 export async function saveProfile(uid: string, profile: Pick<UserProfile, 'displayName' | 'avatarId'>) {
@@ -198,6 +248,7 @@ export type RoomEntry = { code: string; roomId: string; view: PlayerView };
 
 export async function createRoom(uid: string): Promise<RoomEntry> {
   const profile = await requireProfile(uid);
+  // เช็คเร็วเพื่อตอบทันที — ตัวตัดสินจริงคือ claimActiveRoom ด้านล่าง
   const active = await activeRoomOf(uid);
   if (active) throw new ApiError('ALREADY_IN_ROOM', 409, { activeCode: active.code });
 
@@ -211,15 +262,22 @@ export async function createRoom(uid: string): Promise<RoomEntry> {
     now: Date.now(),
   });
 
-  await db()
-    .ref()
-    .update(
-      clean({
-        [`rooms/${roomId}/state`]: state,
-        [`rooms/${roomId}/views`]: buildViews(state),
-        [`users/${uid}/activeRoomId`]: roomId,
-      }),
-    );
+  // เขียนห้องให้มีอยู่จริงก่อนจอง: คำขอสร้าง/เข้าห้องที่แข่งกันจะเห็นห้องนี้เป็นห้องที่ยังเล่นได้
+  try {
+    await db()
+      .ref()
+      .update(clean({ [`rooms/${roomId}/state`]: state, [`rooms/${roomId}/views`]: buildViews(state) }));
+  } catch (e) {
+    await releaseCode(code, roomId);
+    throw e;
+  }
+
+  try {
+    await claimActiveRoom(uid, roomId);
+  } catch (e) {
+    await discardRoom(roomId, code);
+    throw e;
+  }
 
   return { code, roomId, view: projectRoomForPlayer(state, uid)! };
 }
@@ -228,20 +286,33 @@ export async function joinRoomByCode(uid: string, code: string): Promise<RoomEnt
   const profile = await requireProfile(uid);
   const roomId = await resolveRoomId(code);
 
+  // เช็คเร็วเพื่อตอบทันที — ตัวตัดสินจริงคือ claimActiveRoom ด้านล่าง
   const active = await activeRoomOf(uid);
   if (active && active.id !== roomId) throw new ApiError('ALREADY_IN_ROOM', 409, { activeCode: active.code });
 
   // ตรวจความจุและเพิ่มสมาชิกใน transaction เดียว — join พร้อมกันสองคนจะได้ที่นั่งสุดท้ายแค่คนเดียว
-  const res = await mutateRoom<ErrorCode | null>(roomId, (state) => {
+  const res = await mutateRoom<{ error: ErrorCode | null; wasMember: boolean }>(roomId, (state) => {
+    const wasMember = Boolean(state.members[uid]);
     const joined = joinRoom(state, { uid, displayName: profile.displayName, avatarId: profile.avatarId }, Date.now());
-    if (!joined.ok) return { state: null, value: joined.code };
-    return { state: joined.room, value: null };
+    if (!joined.ok) return { state: null, value: { error: joined.code, wasMember } };
+    return { state: joined.room, value: { error: null, wasMember } };
   });
 
   if (!res) throw new ApiError('ROOM_NOT_FOUND', 404);
-  if (res.value) throw new ApiError(res.value, statusFor(res.value));
+  if (res.value.error) throw new ApiError(res.value.error, statusFor(res.value.error));
 
-  await db().ref(`users/${uid}/activeRoomId`).set(roomId);
+  try {
+    await claimActiveRoom(uid, roomId);
+  } catch (e) {
+    // แพ้ให้อีกคำขอที่เข้าห้องอื่นไปก่อน: ถอนที่นั่งที่เพิ่งได้ คู่หูในห้องนี้จะไม่เห็นเราค้างอยู่
+    if (!res.value.wasMember) {
+      await mutateRoom(roomId, (state) => ({ state: unjoinRoom(state, uid, Date.now()), value: null })).catch(
+        () => undefined,
+      );
+    }
+    throw e;
+  }
+
   return { code: res.state.code, roomId, view: projectRoomForPlayer(res.state, uid)! };
 }
 
