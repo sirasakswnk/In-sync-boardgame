@@ -1091,27 +1091,27 @@
       {
         "id": "q31-o1",
         "label": "ห้องนอน",
-        "icon": "🛏️"
+        "icon": "/icons/q31-o1.svg"
       },
       {
         "id": "q31-o2",
         "label": "ห้องครัว",
-        "icon": "🍳"
+        "icon": "/icons/q31-o2.svg"
       },
       {
         "id": "q31-o3",
         "label": "ห้องนั่งเล่น",
-        "icon": "🛋️"
+        "icon": "/icons/q31-o3.svg"
       },
       {
         "id": "q31-o4",
         "label": "มุมทำงาน",
-        "icon": "💻"
+        "icon": "/icons/q31-o4.svg"
       },
       {
         "id": "q31-o5",
         "label": "ระเบียง/สวน",
-        "icon": "🌿"
+        "icon": "/icons/q31-o5.svg"
       }
     ]
   },
@@ -1127,27 +1127,27 @@
       {
         "id": "q32-o1",
         "label": "เนื้อเรื่อง",
-        "icon": "📜"
+        "icon": "/icons/q32-o1.svg"
       },
       {
         "id": "q32-o2",
         "label": "รูปแบบการเล่น",
-        "icon": "🎮"
+        "icon": "/icons/q32-o2.svg"
       },
       {
         "id": "q32-o3",
         "label": "ภาพและงานออกแบบ",
-        "icon": "🎨"
+        "icon": "/icons/q32-o3.svg"
       },
       {
         "id": "q32-o4",
         "label": "เพลงประกอบ",
-        "icon": "🎵"
+        "icon": "/icons/q32-o4.svg"
       },
       {
         "id": "q32-o5",
         "label": "การได้เล่นกับเพื่อน",
-        "icon": "👥"
+        "icon": "/icons/q32-o5.svg"
       }
     ]
   },
@@ -1163,27 +1163,27 @@
       {
         "id": "q33-o1",
         "label": "รีสอร์ตริมทะเล",
-        "icon": "🏖️"
+        "icon": "/icons/q33-o1.svg"
       },
       {
         "id": "q33-o2",
         "label": "บ้านพักบนภูเขามีระเบียงส่วนตัว",
-        "icon": "⛰️"
+        "icon": "/icons/q33-o2.svg"
       },
       {
         "id": "q33-o3",
         "label": "โรงแรมติดห้างสรรพสินค้า",
-        "icon": "🏪"
+        "icon": "/icons/q33-o3.svg"
       },
       {
         "id": "q33-o4",
         "label": "โฮมสเตย์ชุมชน",
-        "icon": "🏪"
+        "icon": "/icons/q33-o4.svg"
       },
       {
         "id": "q33-o5",
         "label": "เต็นท์ในลานกางแคมป์",
-        "icon": "⛺"
+        "icon": "/icons/q33-o5.svg"
       }
     ]
   },
@@ -1199,27 +1199,27 @@
       {
         "id": "q34-o1",
         "label": "รอนาน",
-        "icon": "⏳"
+        "icon": "/icons/q34-o1.svg"
       },
       {
         "id": "q34-o2",
         "label": "ได้อาหารผิด",
-        "icon": "😟"
+        "icon": "/icons/q34-o2.svg"
       },
       {
         "id": "q34-o3",
         "label": "อาหารเย็นชืด",
-        "icon": "🏪"
+        "icon": "/icons/q34-o3.svg"
       },
       {
         "id": "q34-o4",
         "label": "รสชาติไม่ถูกปาก",
-        "icon": "😟"
+        "icon": "/icons/q34-o4.svg"
       },
       {
         "id": "q34-o5",
         "label": "ปริมาณน้อยกว่าที่คิด",
-        "icon": "🤏"
+        "icon": "/icons/q34-o5.svg"
       }
     ]
   },
@@ -1235,27 +1235,27 @@
       {
         "id": "q35-o1",
         "label": "รายได้",
-        "icon": "💰"
+        "icon": "/icons/q35-o1.svg"
       },
       {
         "id": "q35-o2",
         "label": "เวลาส่วนตัว",
-        "icon": "⏳"
+        "icon": "/icons/q35-o2.svg"
       },
       {
         "id": "q35-o3",
         "label": "เพื่อนร่วมงาน",
-        "icon": "👨‍👩‍👧‍👦"
+        "icon": "/icons/q35-o3.svg"
       },
       {
         "id": "q35-o4",
         "label": "โอกาสพัฒนาตัวเอง",
-        "icon": "🚀"
+        "icon": "/icons/q35-o4.svg"
       },
       {
         "id": "q35-o5",
         "label": "เนื้องานที่ชอบ",
-        "icon": "🎨"
+        "icon": "/icons/q35-o5.svg"
       }
     ]
   },
@@ -1271,27 +1271,27 @@
       {
         "id": "q36-o1",
         "label": "เสียงฝนตก",
-        "icon": "⛈️"
+        "icon": "/icons/q36-o1.svg"
       },
       {
         "id": "q36-o2",
         "label": "เสียงคลื่นทะเล",
-        "icon": "🌊"
+        "icon": "/icons/q36-o2.svg"
       },
       {
         "id": "q36-o3",
         "label": "เสียงลม",
-        "icon": "🍃"
+        "icon": "/icons/q36-o3.svg"
       },
       {
         "id": "q36-o4",
         "label": "เสียงดนตรีบรรเลง",
-        "icon": "🎵"
+        "icon": "/icons/q36-o4.svg"
       },
       {
         "id": "q36-o5",
-        "label": "เสียงธรรมชาติ",
-        "icon": "🏕️"
+        "label": "เสียงนก",
+        "icon": "/icons/q36-o5.svg"
       }
     ]
   },
@@ -1307,27 +1307,27 @@
       {
         "id": "q37-o1",
         "label": "วาร์ปไปที่ไหนก็ได้",
-        "icon": "🚀"
+        "icon": "/icons/q37-o1.svg"
       },
       {
         "id": "q37-o2",
         "label": "หยุดเวลา",
-        "icon": "⏳"
+        "icon": "/icons/q37-o2.svg"
       },
       {
         "id": "q37-o3",
         "label": "อ่านใจคนอื่นได้",
-        "icon": "💪"
+        "icon": "/icons/q37-o3.svg"
       },
       {
         "id": "q37-o4",
         "label": "บินได้",
-        "icon": "🦅"
+        "icon": "/icons/q37-o4.svg"
       },
       {
         "id": "q37-o5",
         "label": "รักษาอาการบาดเจ็บ",
-        "icon": "📚"
+        "icon": "/icons/q37-o5.svg"
       }
     ]
   },
@@ -1343,27 +1343,27 @@
       {
         "id": "q38-o1",
         "label": "โรงเรียนเวทมนตร์",
-        "icon": "👨‍👩‍👧‍👦"
+        "icon": "/icons/q38-o1.svg"
       },
       {
         "id": "q38-o2",
         "label": "เมืองอนาคต",
-        "icon": "🤖"
+        "icon": "/icons/q38-o2.svg"
       },
       {
         "id": "q38-o3",
         "label": "โลกแฟนตาซี",
-        "icon": "🧙"
+        "icon": "/icons/q38-o3.svg"
       },
       {
         "id": "q38-o4",
         "label": "สถานีอวกาศ",
-        "icon": "💪"
+        "icon": "/icons/q38-o4.svg"
       },
       {
         "id": "q38-o5",
         "label": "เมืองใต้ทะเล",
-        "icon": "🚀"
+        "icon": "/icons/q38-o5.svg"
       }
     ]
   }

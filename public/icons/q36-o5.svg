@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เสียงนก">
+<title>เสียงนก</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M9 43L5 32L17 35C19 26 24 24 31 26C31 12 51 12 53 28L59 33L52 36C49 49 33 53 20 47Z" fill="#95BEC2" stroke="#554B43" stroke-width="2.6" /><path d="M20 34Q36 25 37 40Q27 47 20 34Z" fill="#92AF92" stroke="#554B43" stroke-width="2.6" /><circle cx="44" cy="25" r="1.8" fill="#554B43" stroke="none" stroke-width="2.6"/><path d="M53 28L60 32L53 34Z" fill="#E0B969" stroke="#554B43" stroke-width="1.8" /><path d="M26 49V55M34 50V55M11 56H47" fill="none" stroke="#BE946F" stroke-width="2.5" /><path d="M14 22V6L24 4V20" fill="none" stroke="#554B43" stroke-width="3" /><ellipse cx="11" cy="22" rx="4" ry="3" fill="#DA9A85" stroke="#554B43" stroke-width="2" /><ellipse cx="21" cy="20" rx="4" ry="3" fill="#DA9A85" stroke="#554B43" stroke-width="2" />
+</g>
+</svg>

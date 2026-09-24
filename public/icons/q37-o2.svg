@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="หยุดเวลา">
+<title>หยุดเวลา</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<circle cx="30" cy="34" r="23" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6"/><path d="M30 13V8M24 7H36M46 16L50 12" fill="none" stroke="#554B43" stroke-width="3" /><circle cx="30" cy="34" r="17" fill="#E0B969" stroke="#554B43" stroke-width="2"/><path d="M30 21V25M17 34H21M30 44V47" fill="none" stroke="#BE946F" stroke-width="2" /><rect x="24" y="28" width="4" height="13" rx="1" fill="#554B43" stroke="none" stroke-width="2.6"/><rect x="32" y="28" width="4" height="13" rx="1" fill="#554B43" stroke="none" stroke-width="2.6"/><path d="M54 33Q55 37 59 38Q55 39 54 43Q53 39 49 38Q53 37 54 33Z" fill="#B8A5CD" stroke="none" stroke-width="2.6" />
+</g>
+</svg>

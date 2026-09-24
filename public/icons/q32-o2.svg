@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="รูปแบบการเล่น">
+<title>รูปแบบการเล่น</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M21 22H43Q52 22 55 34L59 46Q60 54 53 55Q49 55 42 45H22Q15 55 11 55Q4 54 5 46L9 34Q12 22 21 22Z" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6" /><path d="M24 21V16Q24 11 32 11H38" fill="none" stroke="#554B43" stroke-width="3" /><path d="M18 29V41M12 35H24" fill="none" stroke="#554B43" stroke-width="4" /><circle cx="43" cy="31" r="2.6" fill="#DA9A85" stroke="#554B43" stroke-width="1.5"/><circle cx="49" cy="37" r="2.6" fill="#E0B969" stroke="#554B43" stroke-width="1.5"/><circle cx="38" cy="38" r="2.6" fill="#92AF92" stroke="#554B43" stroke-width="1.5"/><path d="M29 41H34" fill="none" stroke="#554B43" stroke-width="2.6" />
+</g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เสียงฝนตก">
+<title>เสียงฝนตก</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M16 32C3 31 6 16 17 17C19 3 39 3 44 16C58 12 63 31 49 32Z" fill="#95BEC2" stroke="#554B43" stroke-width="2.6" /><path d="M17 41L14 48M32 40L29 48M47 41L44 48M24 51L22 56M39 51L37 56" fill="none" stroke="#648F9E" stroke-width="3.5" />
+</g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="บินได้">
+<title>บินได้</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M30 45C18 46 7 36 7 15C16 26 23 19 30 34Z" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><path d="M34 45C46 46 57 36 57 15C48 26 41 19 34 34Z" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><path d="M12 28L25 37M16 38L27 42M52 28L39 37M48 38L37 42" fill="none" stroke="#BE946F" stroke-width="2.4" /><path d="M32 10Q33 15 38 16Q33 17 32 22Q31 17 26 16Q31 15 32 10Z" fill="#E0B969" stroke="none" stroke-width="2.6" /><path d="M28 51L26 56M36 51L38 56" fill="none" stroke="#648F9E" stroke-width="2.5" />
+</g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="อาหารเย็นชืด">
+<title>อาหารเย็นชืด</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M8 29H56Q53 49 39 52H25Q11 49 8 29Z" fill="#95BEC2" stroke="#554B43" stroke-width="2.6" /><ellipse cx="32" cy="29" rx="24" ry="5" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><path d="M20 54H44" fill="none" stroke="#554B43" stroke-width="3" /><path d="M33 5V22M25 9L41 18M25 18L41 9M29 7L33 10L37 7M26 13L30 14L29 18M38 11L37 15L41 15" fill="none" stroke="#648F9E" stroke-width="2.5" />
+</g>
+</svg>

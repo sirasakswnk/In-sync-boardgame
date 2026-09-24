@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เสียงคลื่นทะเล">
+<title>เสียงคลื่นทะเล</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M5 46C17 47 20 28 31 20C44 10 58 17 56 28C49 22 43 23 40 31C36 44 47 49 58 46V54H5Z" fill="#95BEC2" stroke="#554B43" stroke-width="2.6" /><path d="M22 37C31 18 42 17 50 21M31 45C38 50 49 53 57 48" fill="none" stroke="#FFF7E5" stroke-width="4" /><path d="M8 55Q16 50 25 55Q34 60 43 55Q50 52 57 55" fill="none" stroke="#648F9E" stroke-width="3" />
+</g>
+</svg>

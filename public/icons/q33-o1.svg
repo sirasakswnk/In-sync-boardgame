@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="รีสอร์ตริมทะเล">
+<title>รีสอร์ตริมทะเล</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M8 31L29 15L49 31Z" fill="#DA9A85" stroke="#554B43" stroke-width="2.6" /><rect x="13" y="31" width="32" height="23" rx="2" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6"/><rect x="24" y="37" width="10" height="17" rx="2" fill="#95BEC2" stroke="#554B43" stroke-width="2.6"/><path d="M5 57Q11 52 17 57Q23 61 29 57Q35 53 41 57Q47 61 58 55" fill="none" stroke="#648F9E" stroke-width="3" /><path d="M50 42Q52 25 48 15" fill="none" stroke="#BE946F" stroke-width="3" /><path d="M49 19Q37 10 36 21M49 19Q52 5 58 12M49 19Q61 17 60 26" fill="none" stroke="#638770" stroke-width="4" />
+</g>
+</svg>

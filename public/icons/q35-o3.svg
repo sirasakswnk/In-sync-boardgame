@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เพื่อนร่วมงาน">
+<title>เพื่อนร่วมงาน</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<circle cx="19" cy="20" r="8" fill="#DA9A85" stroke="#554B43" stroke-width="2.6"/><circle cx="45" cy="20" r="8" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6"/><path d="M5 46V39Q5 29 19 29Q31 29 31 39V46Z" fill="#DA9A85" stroke="#554B43" stroke-width="2.6" /><path d="M33 46V39Q33 29 45 29Q59 29 59 39V46Z" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6" /><rect x="8" y="44" width="48" height="9" rx="2" fill="#BE946F" stroke="#554B43" stroke-width="2.6"/><rect x="23" y="35" width="19" height="15" rx="2" fill="#95BEC2" stroke="#554B43" stroke-width="2.6"/><path d="M21 51H43" fill="none" stroke="#554B43" stroke-width="2.5" />
+</g>
+</svg>

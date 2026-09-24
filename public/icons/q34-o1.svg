@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="รอนาน">
+<title>รอนาน</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<ellipse cx="28" cy="47" rx="23" ry="9" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><ellipse cx="28" cy="46" rx="16" ry="4" fill="#FFF7E5" stroke="#BE946F" stroke-width="1.7" /><path d="M23 39Q22 29 30 25M36 37Q37 28 32 25" fill="none" stroke="#DA9A85" stroke-width="3" /><path d="M39 8H56M39 35H56M41 9C41 16 47 18 48 21C47 24 41 27 41 34H54C54 27 48 24 47 21C48 18 54 16 54 9Z" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><path d="M43 12H52L48 18ZM43 32L48 25L52 32Z" fill="#E0B969" stroke="none" stroke-width="2.6" />
+</g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="บ้านพักบนภูเขามีระเบียงส่วนตัว">
+<title>บ้านพักบนภูเขามีระเบียงส่วนตัว</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M6 32L21 8L33 25L44 11L60 35Z" fill="#95BEC2" stroke="#554B43" stroke-width="2.6" /><path d="M16 16L21 8L27 17L22 15Z" fill="#FFF7E5" stroke="none" stroke-width="2.6" /><rect x="13" y="34" width="35" height="21" rx="2" fill="#BE946F" stroke="#554B43" stroke-width="2.6"/><path d="M7 34L31 17L54 34Z" fill="#92AF92" stroke="#554B43" stroke-width="2.6" /><rect x="20" y="38" width="12" height="17" rx="2" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6"/><rect x="37" y="38" width="7" height="8" rx="1" fill="#95BEC2" stroke="#554B43" stroke-width="2.6"/><path d="M9 44H54V54H9Z" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><path d="M15 44V54M24 44V54M33 44V54M42 44V54M51 44V54" fill="none" stroke="#BE946F" stroke-width="2" />
+</g>
+</svg>

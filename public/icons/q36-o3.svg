@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เสียงลม">
+<title>เสียงลม</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M5 23H36C49 23 47 8 38 11M8 34H47C61 34 60 17 51 20M6 44H24C35 44 33 57 25 54" fill="none" stroke="#648F9E" stroke-width="3.7" /><path d="M33 46C37 33 49 37 57 38C55 52 41 57 33 46Z" fill="#92AF92" stroke="#554B43" stroke-width="2.6" /><path d="M33 46L48 44" fill="none" stroke="#638770" stroke-width="2.5" />
+</g>
+</svg>

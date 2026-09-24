@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="ได้อาหารผิด">
+<title>ได้อาหารผิด</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<ellipse cx="29" cy="40" rx="23" ry="15" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><ellipse cx="29" cy="40" rx="16" ry="9" fill="#FFF7E5" stroke="#BE946F" stroke-width="1.7" /><path d="M19 39Q24 28 37 39L34 45H22Z" fill="#DA9A85" stroke="#554B43" stroke-width="2.6" /><path d="M12 17Q30 4 48 17M42 10L49 17L40 20" fill="none" stroke="#638770" stroke-width="3.4" /><path d="M52 45Q52 54 43 57M51 55L43 58L42 51" fill="none" stroke="#8F7DA7" stroke-width="3" />
+</g>
+</svg>

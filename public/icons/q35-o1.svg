@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="รายได้">
+<title>รายได้</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M25 20L20 8L29 10L34 7L43 9L38 21C51 28 56 42 51 51C46 59 17 59 12 51C7 42 12 28 25 20Z" fill="#E0B969" stroke="#554B43" stroke-width="2.6" /><path d="M24 20H39" fill="none" stroke="#554B43" stroke-width="4" /><circle cx="32" cy="39" r="10" fill="#F8E8C9" stroke="#554B43" stroke-width="2"/><path d="M32 32V46M36 34H30Q26 37 32 39Q39 41 35 44H28" fill="none" stroke="#BE946F" stroke-width="2.3" />
+</g>
+</svg>

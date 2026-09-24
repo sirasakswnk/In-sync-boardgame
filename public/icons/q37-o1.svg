@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="วาร์ปไปที่ไหนก็ได้">
+<title>วาร์ปไปที่ไหนก็ได้</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<ellipse cx="32" cy="32" rx="20" ry="25" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6" /><ellipse cx="32" cy="32" rx="13" ry="18" fill="#8F7DA7" stroke="#554B43" stroke-width="2" /><path d="M26 32H39M34 27L40 32L34 37" fill="none" stroke="#F8E8C9" stroke-width="3.5" /><path d="M5 23H11M4 33H9M6 43H12" fill="none" stroke="#648F9E" stroke-width="3" /><path d="M51 7Q52 11 56 12Q52 13 51 17Q50 13 46 12Q50 11 51 7Z" fill="#E0B969" stroke="none" stroke-width="2.6" /><path d="M52 47Q53 50 56 51Q53 52 52 55Q51 52 48 51Q51 50 52 47Z" fill="#E0B969" stroke="none" stroke-width="2.6" />
+</g>
+</svg>

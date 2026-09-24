@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เต็นท์ในลานกางแคมป์">
+<title>เต็นท์ในลานกางแคมป์</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M6 54L30 13L58 54Z" fill="#DA9A85" stroke="#554B43" stroke-width="2.6" /><path d="M30 13L44 54H58Z" fill="#E0B969" stroke="#554B43" stroke-width="2.6" /><path d="M14 54L30 26L42 54Z" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><path d="M22 54L30 39L35 54Z" fill="#8F7DA7" stroke="#554B43" stroke-width="2.6" /><path d="M29 12L32 7M7 52L4 57M56 52L60 57" fill="none" stroke="#554B43" stroke-width="2.5" /><path d="M49 10Q50 14 54 15Q50 16 49 20Q48 16 44 15Q48 14 49 10Z" fill="#E0B969" stroke="none" stroke-width="2.6" />
+</g>
+</svg>

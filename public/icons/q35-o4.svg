@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="โอกาสพัฒนาตัวเอง">
+<title>โอกาสพัฒนาตัวเอง</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M9 55V44H23V33H37V22H51V55Z" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6" /><path d="M11 31L24 20L33 24L50 8M39 8H51V20" fill="none" stroke="#638770" stroke-width="4.5" /><path d="M23 44V55M37 33V55" fill="none" stroke="#8F7DA7" stroke-width="2" /><path d="M55 28Q56 31 59 32Q56 33 55 36Q54 33 51 32Q54 31 55 28Z" fill="#E0B969" stroke="none" stroke-width="2.6" />
+</g>
+</svg>

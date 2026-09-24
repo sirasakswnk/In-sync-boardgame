@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เสียงดนตรีบรรเลง">
+<title>เสียงดนตรีบรรเลง</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M11 19C12 35 16 45 27 49V54H45V49C56 45 58 34 57 19H49C50 36 47 44 35 44C23 44 20 35 20 19Z" fill="#BE946F" stroke="#554B43" stroke-width="2.6" /><path d="M16 19H53" fill="none" stroke="#E0B969" stroke-width="6" /><path d="M25 21V39M33 21V43M41 21V42M48 21V36" fill="none" stroke="#F8E8C9" stroke-width="2" /><path d="M11 22V6L21 4V20" fill="none" stroke="#554B43" stroke-width="3" /><ellipse cx="8" cy="22" rx="4" ry="3" fill="#B8A5CD" stroke="#554B43" stroke-width="2" /><ellipse cx="18" cy="20" rx="4" ry="3" fill="#B8A5CD" stroke="#554B43" stroke-width="2" />
+</g>
+</svg>

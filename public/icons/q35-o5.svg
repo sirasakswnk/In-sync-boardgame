@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เนื้องานที่ชอบ">
+<title>เนื้องานที่ชอบ</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<path d="M23 21V15Q23 11 27 11H37Q41 11 41 15V21" fill="none" stroke="#554B43" stroke-width="3" /><rect x="9" y="21" width="46" height="33" rx="5" fill="#BE946F" stroke="#554B43" stroke-width="2.6"/><path d="M9 24V33Q32 43 55 33V24Z" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><g transform="translate(32 40) scale(0.75)"><path d="M0 6C-3 3-10-1-10-7C-10-14-3-15 0-9C3-15 10-14 10-7C10-1 3 3 0 6Z" fill="#DA9A85" stroke="#554B43" stroke-width="3.466666666666667" /></g>
+</g>
+</svg>

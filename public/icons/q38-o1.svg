@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="โรงเรียนเวทมนตร์">
+<title>โรงเรียนเวทมนตร์</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<rect x="11" y="26" width="13" height="29" rx="1" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6"/><rect x="40" y="26" width="13" height="29" rx="1" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6"/><path d="M8 26L17 10L27 26ZM37 26L46 10L56 26Z" fill="#DA9A85" stroke="#554B43" stroke-width="2.6" /><rect x="24" y="33" width="16" height="22" rx="1" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6"/><path d="M28 55V45Q32 38 36 45V55" fill="#BE946F" stroke="#554B43" stroke-width="2.6" /><path d="M17 34V39M47 34V39" fill="none" stroke="#F8E8C9" stroke-width="3" /><path d="M26 30L40 8" fill="none" stroke="#BE946F" stroke-width="3.5" /><path d="M42 3Q43 7 47 8Q43 9 42 13Q41 9 37 8Q41 7 42 3Z" fill="#E0B969" stroke="none" stroke-width="2.6" />
+</g>
+</svg>

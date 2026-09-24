@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="ปริมาณน้อยกว่าที่คิด">
+<title>ปริมาณน้อยกว่าที่คิด</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<ellipse cx="32" cy="34" rx="26" ry="20" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><ellipse cx="32" cy="34" rx="19" ry="13" fill="#FFF7E5" stroke="#BE946F" stroke-width="1.6" /><path d="M28 34L36 30L38 36L30 39Z" fill="#DA9A85" stroke="#554B43" stroke-width="2" /><path d="M35 29Q35 22 42 25Q40 32 35 29Z" fill="#92AF92" stroke="#554B43" stroke-width="2.6" /><path d="M8 12V22M4 17H12M53 11V19M49 15H57" fill="none" stroke="#BE946F" stroke-width="2" />
+</g>
+</svg>

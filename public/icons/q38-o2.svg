@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="เมืองอนาคต">
+<title>เมืองอนาคต</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<rect x="8" y="30" width="13" height="25" rx="2" fill="#95BEC2" stroke="#554B43" stroke-width="2.6"/><path d="M25 55V20L34 8L43 20V55Z" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6" /><rect x="47" y="27" width="10" height="28" rx="2" fill="#92AF92" stroke="#554B43" stroke-width="2.6"/><path d="M23 22H45" fill="none" stroke="#554B43" stroke-width="3" /><path d="M31 26H37M31 34H37M31 42H37M13 36V41M52 33V39" fill="none" stroke="#F8E8C9" stroke-width="2.6" /><path d="M5 18Q9 12 19 17L23 21H5Z" fill="#DA9A85" stroke="#554B43" stroke-width="2.6" /><path d="M8 24H17" fill="none" stroke="#E0B969" stroke-width="2" />
+</g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" role="img" aria-label="โรงแรมติดห้างสรรพสินค้า">
+<title>โรงแรมติดห้างสรรพสินค้า</title>
+<g stroke-linecap="round" stroke-linejoin="round">
+<ellipse cx="32" cy="58" rx="23" ry="3" fill="#554B43" stroke="none" stroke-width="2.6" opacity=".10"/>
+<rect x="8" y="10" width="27" height="45" rx="3" fill="#B8A5CD" stroke="#554B43" stroke-width="2.6"/><path d="M5 55H59" fill="none" stroke="#554B43" stroke-width="3" /><rect x="14" y="17" width="6" height="7" rx="1" fill="#F8E8C9" stroke="#554B43" stroke-width="1.7"/><rect x="24" y="17" width="6" height="7" rx="1" fill="#F8E8C9" stroke="#554B43" stroke-width="1.7"/><rect x="14" y="29" width="6" height="7" rx="1" fill="#F8E8C9" stroke="#554B43" stroke-width="1.7"/><rect x="24" y="29" width="6" height="7" rx="1" fill="#F8E8C9" stroke="#554B43" stroke-width="1.7"/><rect x="18" y="43" width="9" height="12" rx="1" fill="#95BEC2" stroke="#554B43" stroke-width="2.6"/><rect x="35" y="30" width="23" height="25" rx="2" fill="#DA9A85" stroke="#554B43" stroke-width="2.6"/><path d="M34 30L38 24H55L59 30Z" fill="#E0B969" stroke="#554B43" stroke-width="2.6" /><path d="M41 39H53V50H41Z" fill="#F8E8C9" stroke="#554B43" stroke-width="2.6" /><path d="M44 39V36Q47 32 50 36V39" fill="none" stroke="#554B43" stroke-width="2" />
+</g>
+</svg>
